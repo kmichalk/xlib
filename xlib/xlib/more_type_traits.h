@@ -428,5 +428,13 @@ public:\
 		!std::is_same<decltype(test<T>(__True())), __False>::value;\
 };
 
+//////////////////////////////////////////////////////////////////////////////
+
+template<typename T, typename... Y>
+struct is_comparable
+{
+	ADVANCED_MEMBER_TEST(has_compare_op, typename R, operator==, const, typename C);
+	static constexpr bool value = any_true<has_compare_op<T, bool, Y>::value...>::value;
+};
 
 #endif //more_type_traits_
