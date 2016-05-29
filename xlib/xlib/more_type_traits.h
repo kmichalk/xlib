@@ -23,9 +23,48 @@ struct condition<T, false, a, b>
 template<typename T>
 constexpr T _if(const bool test, const T a, const T b)
 {
-	return condition_<T, test, a, b>::value;
+	return condition<T, test, a, b>::value;
 }
 
+//////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+struct is_free_fn_ptr
+{
+	static constexpr bool value = false;
+};
+
+template<typename R, typename... A>
+struct is_free_fn_ptr<R(*)(A...)>
+{
+	static constexpr bool value = true;
+};
+
+//////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+struct is_member_fn_ptr
+{
+	static constexpr bool value = false;
+};
+
+template<typename R, typename T, typename... A>
+struct is_member_fn_ptr<R(T::*)(A...)>
+{
+	static constexpr bool value = true;
+};
+
+//////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+struct is_fn_ptr
+{
+	static constexpr bool value =
+		is_free_fn_ptr<T>::value ||
+		is_member_fn_ptr<T>::value;
+};
+
+//////////////////////////////////////////////////////////////////////////////
 
 template<typename T, typename... Y_>
 struct is_any_of {};
