@@ -3,8 +3,8 @@
 
 #include "size.h"
 
-#define loop(n) for (int __i__=0;__i__<n;++__i__)
-#define foreach(i, cnt) for (size_t i = 0; i<x::size(cnt); ++i)
-#define repeat while(true)
+#define repeat(n) for (int __i__=0;__i__<n;++__i__)
+#define foreach(i, cnt) for (size_t i = 0, __size=x::size(cnt); i<__size; ++i)
+#define loop while(true)
 
 #endif
