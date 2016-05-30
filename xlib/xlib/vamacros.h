@@ -1,19 +1,19 @@
 #ifndef VA_MACROS_H
 #define VA_MACROS_H
 
-#define VA_EXECUTE(macro, VA) macro VA
+//#define VA_EXECUTE(macro, VA) macro VA
+#define SEPARATE(m, x) m x
 
 #define NARGS_SEQ(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,N,...) N
 //#define VA_TO_SEQ(VA) NARGS_SEQ VA
-#define NARGS(...) VA_EXECUTE(NARGS_SEQ, (__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1))
+#define NARGS(...) SEPARATE(NARGS_SEQ, (__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1))
 //#define NARGS(...) VA_TO_SEQ((__VA_ARGS__, 8, 7, 6, 5, 4, 3, 2, 1))
 
 #define PRIMITIVE_CAT(x, y) x ## y
 //#define VA_TO_CONCAT(VA) PRIMITIVE_CAT VA
-#define CAT(x, y) VA_EXECUTE(PRIMITIVE_CAT, (x,y))
+#define CAT(x, y) SEPARATE(PRIMITIVE_CAT, (x,y))
 //#define CAT(x, y) VA_TO_CONCAT((x, y))
 
-#define SEPARATE(m, x) m x
 #define APPLY(macro, ...) SEPARATE(CAT(APPLY_, NARGS(__VA_ARGS__)), (macro, __VA_ARGS__))
 
 #define APPLY(macro, ...) CAT(APPLY_, NARGS(__VA_ARGS__))(macro, __VA_ARGS__)
