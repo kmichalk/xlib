@@ -7,6 +7,67 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
+struct __True {
+	__True() {}
+};
+struct __False {
+	__False(__True) {}
+};
+
+//////////////////////////////////////////////////////////////////////////////
+
+#define ADVANCED_MEMBER_TEST(TestName, R_template, member, parameters, ...) \
+template<typename T_, R_template, __VA_ARGS__>\
+class TestName\
+{\
+protected:\
+	template<typename Y_, R_template, __VA_ARGS__>\
+	using MemberType_ = typename std::conditional<std::is_class<T_>::value,\
+		R_template(Y_::*)(__VA_ARGS__) parameters, __True>::type;\
+	template<typename Y_> static __False test(__False);\
+	template<typename Y_> static typename std::conditional<std::is_class<T_>::value,\
+		decltype(&Y_::member), __False>::type test(__True);\
+public:\
+	static constexpr bool value = \
+		std::is_same<decltype(test<T_>(__True())),\
+		MemberType_<T_,R_template,__VA_ARGS__>>::value;\
+};
+
+//////////////////////////////////////////////////////////////////////////////
+
+#define EXPLICIT_MEMBER_TEST(TestName, ReturnType, member, arguments, parameters) \
+template<typename T_>\
+class TestName\
+{\
+private:\
+	template<typename Y_>\
+	using MemberType_ = typename std::conditional<std::is_class<T_>::value,\
+		ReturnType(Y_::*)##arguments parameters, __True>::type;\
+	template<typename Y_> static __False test(__False);\
+	template<typename Y_> static typename std::conditional<std::is_class<T_>::value,\
+		decltype(&Y_::member), __False>::type test(__True);\
+public:\
+	static constexpr bool value = \
+		std::is_same<decltype(test<T_>(__True())), MemberType_<T_>>::value;\
+};
+
+//////////////////////////////////////////////////////////////////////////////
+
+#define MEMBER_TEST(TestName, member) \
+template<typename T>\
+class TestName\
+{\
+private:\
+	template <typename Y> static __False test(__False);\
+	template <typename Y> static typename std::conditional<std::is_class<T>::value,\
+		decltype(&Y::member), __False>::type test(__True);\
+public:\
+	static constexpr bool value = \
+		!std::is_same<decltype(test<T>(__True())), __False>::value;\
+};
+
+//////////////////////////////////////////////////////////////////////////////
+
 template<typename T, const bool test, const T a, const T b>
 struct condition;
 template<typename T, const T a, const T b>
@@ -25,6 +86,10 @@ constexpr T _if(const bool test, const T a, const T b)
 {
 	return condition<T, test, a, b>::value;
 }
+
+//////////////////////////////////////////////////////////////////////////////
+
+MEMBER_TEST(is_functor, operator())
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -82,11 +147,6 @@ struct is_any_of<T, Y_>
 };
 
 #define IS_ANY_OF(...) is_any_of<__VA_ARGS__>::value
-
-//////////////////////////////////////////////////////////////////////////////
-
-struct __True { __True() {} };
-struct __False { __False(__True) {} };
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -416,55 +476,6 @@ template<
 struct same_template<T1<Y1...>, T1<Y2...>>
 {
 	static constexpr bool value = true;
-};
-
-//////////////////////////////////////////////////////////////////////////////
-
-#define ADVANCED_MEMBER_TEST(TestName, R_template, member, parameters, ...) \
-template<typename T_, R_template, __VA_ARGS__>\
-class TestName\
-{\
-protected:\
-	template<typename Y_, R_template, __VA_ARGS__>\
-	using MemberType_ = typename std::conditional<std::is_class<T_>::value,\
-		R_template(Y_::*)(__VA_ARGS__) parameters, __True>::type;\
-	template<typename Y_> static __False test(__False);\
-	template<typename Y_> static typename std::conditional<std::is_class<T_>::value,\
-		decltype(&Y_::member), __False>::type test(__True);\
-public:\
-	static constexpr bool value = \
-		std::is_same<decltype(test<T_>(__True())),\
-		MemberType_<T_,R_template,__VA_ARGS__>>::value;\
-};
-
-#define EXPLICIT_MEMBER_TEST(TestName, ReturnType, member, arguments, parameters) \
-template<typename T_>\
-class TestName\
-{\
-private:\
-	template<typename Y_>\
-	using MemberType_ = typename std::conditional<std::is_class<T_>::value,\
-		ReturnType(Y_::*)##arguments parameters, __True>::type;\
-	template<typename Y_> static __False test(__False);\
-	template<typename Y_> static typename std::conditional<std::is_class<T_>::value,\
-		decltype(&Y_::member), __False>::type test(__True);\
-public:\
-	static constexpr bool value = \
-		std::is_same<decltype(test<T_>(__True())), MemberType_<T_>>::value;\
-};
-
-
-#define MEMBER_TEST(TestName, member) \
-template<typename T>\
-class TestName\
-{\
-private:\
-	template <typename Y> static __False test(__False);\
-	template <typename Y> static typename std::conditional<std::is_class<T>::value,\
-		decltype(&Y::member), __False>::type test(__True);\
-public:\
-	static constexpr bool value = \
-		!std::is_same<decltype(test<T>(__True())), __False>::value;\
 };
 
 //////////////////////////////////////////////////////////////////////////////
