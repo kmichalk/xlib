@@ -239,9 +239,9 @@ public:
 	template<typename>
 	friend class vector_;
 
-	enum error_t
+	enum error
 	{
-		ERR_OUT_OF_SIZE, ERR_NOTHING_TO_REMOVE,
+		ERR_OUT_OF_SIZE, ERR_NOTHING_toREMOVE,
 		ERR_INVALID_ALLOC_MULT, ERR_GET_EMPTY,
 		ERR_NOT_FOUND, ERR_RESERVE_LESS,
 		ERR_RESIZE_CONST
@@ -603,12 +603,20 @@ public:
 		if (size_) copy_(content_, str.data(), size_);
 	}
 
-	template<typename iT>
-	vector_(enable_if<std::is_fundamental<iT>::value, T(*)(iT)> fn, iT from_, iT to_, iT d = 1) :
-		content_(alloc_(abs((to_ - from_) / d) + 1)),
-		size_(abs((to_ - from_) / d) + 1)
+	/*template<typename I>
+	vector_(enable_if<std::is_fundamental<I>::value, 
+		T(*)(I)> fn, I from, I to, I d = 1) :
+		content_(alloc_(abs((to - from) / d) + 1)),
+		size_(abs((to - from) / d) + 1)
 	{
-		generate(fn, from_, d);
+		generate(fn, from, d);
+	}*/
+	template<typename F, typename I>
+	vector_(F&& fn, I from, I to, I d = 1) :
+		content_(alloc_(abs((to - from) / d) + 1)),
+		size_(abs((to - from) / d) + 1)
+	{
+		generate(fn, from, d);
 	}
 
 	__forceinline constexpr size_t dim() const
@@ -616,7 +624,7 @@ public:
 		return dim_;
 	}
 
-	//returns const pointer to_ the content
+	//returns const pointer to the content
 	__forceinline const T* content() const
 	{
 		return content_;
@@ -657,7 +665,7 @@ public:
 		return alloc_mult_;
 	}
 
-	//sets allocation multiplier to_ "alm" if value is valid
+	//sets allocation multiplier to "alm" if value is valid
 	bool set_alloc_mult(double alm)
 	{
 		if (alm > 1.0) {
@@ -680,7 +688,7 @@ public:
 		return std::string(content_);
 	}
 
-	//returns reference to_ "n"th element
+	//returns reference to "n"th element
 	__forceinline T& operator[](unsigned n) const
 	{
 		return content_[n];
@@ -713,7 +721,7 @@ public:
 		return identical<false>(other);
 	}
 
-	//returns reference to_ "n"th element
+	//returns reference to "n"th element
 	T& at(size_t n) const
 	{
 		if (n < size_)
@@ -721,7 +729,7 @@ public:
 		throw ERR_OUT_OF_SIZE;
 	}
 
-	//returns reference to_ first element
+	//returns reference to first element
 	inline T& first() const
 	{
 		if (size_>0)
@@ -729,7 +737,7 @@ public:
 		throw(ERR_GET_EMPTY);
 	}
 
-	//returns reference to_ last element
+	//returns reference to last element
 	inline T& last() const
 	{
 		if (size_>0)
@@ -793,7 +801,7 @@ public:
 		return *this;
 	}
 
-	//removes every element from_ position "p1" to_ "p2" inclusive
+	//removes every element from position "p1" to "p2" inclusive
 	template<bool ptr_delete = false, typename Y = T>
 	enable_if<std::is_pointer<Y>::value && ptr_delete,
 		vector_<T>&> erase(size_t p1, size_t p2)
@@ -837,7 +845,7 @@ public:
 		return *this;
 	}
 
-	//resizes content to_ "size" and replaces each element with "elem" 
+	//resizes content to "size" and replaces each element with "elem" 
 	vector_<T>& fill(const T& elem, size_t size)
 	{
 		delete[] content_;
@@ -850,42 +858,42 @@ public:
 	}
 
 	//fills content with values of a function for specified arguments
-	template<typename iT>
-	enable_if<std::is_fundamental<iT>::value,
-		vector_<T>&> generate(T(*f)(iT), iT from_, iT to_, iT d)
+	template<typename F, typename I>
+	enable_if<std::is_fundamental<I>::value,
+		vector_<T>&> generate(F&& fn, I from, I to, I d)
 	{
 		delete[] content_;
-		content_ = alloc_(abs((to_ - from_) / d) + 1);
-		size_ = abs((to_ - from_) / d) + 1;
+		content_ = alloc_(abs((to - from) / d) + 1);
+		size_ = abs((to - from) / d) + 1;
 		size_t i = 0;
-		for (iT x = from_; /*x <= to_ &&*/ i<size_; x += d) {
-			content_[i++] = (*f)(x);
+		for (I x = from; i<size_; x += d) {
+			content_[i++] = fn(x);
 		}
 		return *this;
 	}
 
 	//fills content with values of a function for specified arguments
-	template<typename iT>
-	enable_if<std::is_fundamental<iT>::value,
-		vector_<T>&> generate(T(*f)(iT), iT from_, iT d)
+	template<typename F, typename I>
+	enable_if<std::is_fundamental<I>::value,
+		vector_<T>&> generate(F&& fn, I from, I d)
 	{
 		size_t i = 0;
-		for (iT x = from_; /*x <= to_ &&*/ i<size_; x += d) {
-			content_[i++] = (*f)(x);
+		for (I x = from; i<size_; x += d) {
+			content_[i++] = fn(x);
 		}
 		return *this;
 	}
 
-	//fills content with values <"from_", "to_"> with delta = "d"
+	//fills content with values <"from", "to"> with delta = "d"
 	template<typename Y = T>
 	enable_if<std::is_fundamental<Y>::value,
-		vector_<Y>&> generate(Y from_, Y to_, Y d = 1)
+		vector_<Y>&> generate(Y from, Y to, Y d = 1)
 	{
 		delete[] content_;
-		content_ = alloc_(abs((to_ - from_) / d) + 1);
-		size_ = abs((to_ - from_) / d) + 1;
+		content_ = alloc_(abs((to - from) / d) + 1);
+		size_ = abs((to - from) / d) + 1;
 		size_t i = 0;
-		for (Y x = from_; /*x <= to_ &&*/ i<size_; x += d) {
+		for (Y x = from; i<size_; x += d) {
 			content_[i++] = x;
 		}
 		return *this;
@@ -992,15 +1000,16 @@ public:
 		return *this;
 	}
 
-	//removes up to_ "n" specified elements "toRem" if such occur.
+	//removes up to "n" specified elements "toRem" if such occur.
 	//if "n"=0 removes all
 	//returns number of removed elements
-	template<bool ptr_delete = false, bool ptr_deref = false>
-	int remove(const T& val, unsigned max = 0)
+	template<bool ptr_delete = false, bool ptr_deref = false, typename U, typename Y=T>
+	enable_if<std::is_convertible<Y,U>::value,
+		int> remove(U const& val, unsigned max = 0)
 	{
 		int i = -1, lastp = -1, nrem = 0;
 		while (++i < size_) {
-			if (compare_elem_<ptr_deref>(content_[i], val)) {
+			if (compare_elem_<ptr_deref>((U)content_[i], val)) {
 				destroy_elem_<ptr_delete>(content_[i]);
 				if (i > lastp + nrem) {
 					memcpy(content_ + lastp,
@@ -1020,13 +1029,12 @@ public:
 		return nrem;
 	}
 
-	template<bool ptr_delete = false/*, bool ptr_deref = false*/, typename Y>
-	enable_if<std::is_same<decay<Y>, decay<T>>::value,
-		int> remove_if(bool(*f)(Y), unsigned max = 0)
+	template<bool ptr_delete = false, typename F>
+	int remove_if(F&& fn, unsigned max = 0)
 	{
 		int i = -1, lastp = -1, nrem = 0;
 		while (++i < size_) {
-			if ((*f)(content_[i])) {
+			if (fn(content_[i])) {
 				destroy_elem_<ptr_delete>(content_[i]);
 				if (i > lastp + nrem) {
 					memcpy(content_ + lastp,
@@ -1046,26 +1054,24 @@ public:
 		return nrem;
 	}
 
-	template<bool ptr_deref = false, typename Y>
-	enable_if<std::is_same<decay<Y>, decay<T>>::value,
-		vector_<T>> copy_if(bool(*f)(Y))
+	template<bool ptr_deref = false, typename F>
+	vector_<T> copy_if(F&& fn)
 	{
 		vector_<T> copied(size_);
 		for (int i = 0; i < size_; ++i) {
-			if ((*f)(content_[i])) copied.push_back(elem_<ptr_deref>(content_[i]));
+			if (fn(content_[i])) copied.push_back(elem_<ptr_deref>(content_[i]));
 		}
 		copied.shrink();
 		return copied;
 	}
 
-	template<bool ptr_delete = false, bool ptr_deref = false, typename Y>
-	enable_if<std::is_same<decay<Y>, decay<T>>::value,
-		vector_<T>> extract_if(bool(*f)(Y), unsigned max = 0)
+	template<bool ptr_delete = false, bool ptr_deref = false, typename F>
+	vector_<T> extract_if(F&& fn, unsigned max = 0)
 	{
 		vector_<T> extracted(size_);
 		int i = -1, lastp = -1, nrem = 0;
 		while (++i < size_) {
-			if ((*f)(content_[i])) {
+			if (fn(content_[i])) {
 				extracted.push_back(elem_<ptr_deref>(content_[i]));
 				destroy_elem_<ptr_delete>(content_[i]);
 				if (i > lastp + nrem) {
@@ -1133,7 +1139,7 @@ public:
 		return *this;
 	}
 
-	//return random element from_ specified range <"p1","p2"> inclusive
+	//return random element from specified range <"p1","p2"> inclusive
 	T& get_random(size_t p1, size_t p2) const
 	{
 		return content_[random<size_t>(p1, p2)];
@@ -1267,37 +1273,39 @@ public:
 		return n;
 	}
 
-	//returns reference to_ element, value of which is equal to_ "elem"
-	template<bool ptr_deref = false>
-	T& find(T const& elem)
+	//returns reference to element, value of which is equal to "elem"
+	template<bool ptr_deref = false, typename U, typename Y=T>
+	enable_if<std::is_convertible<Y,U>::value, 
+		T&> find(U const& elem)
 	{
 		for (size_t i = 0; i < size_; ++i)
-			if (compare_elem_<ptr_deref>(content_[i], elem)) return content_[i];
+			if (compare_elem_<ptr_deref>((U)content_[i], elem)) 
+				return content_[i];
 		throw(ERR_NOT_FOUND);
 	}
 
-	template<bool ptr_deref = false>
-	bool contains(T const& elem)
+	template<bool ptr_deref = false, typename U, typename Y=T>
+	enable_if<std::is_convertible<Y,U>::value,
+		bool> contain(U const& elem)
 	{
 		for (size_t i = 0; i < size_; ++i)
-			if (compare_elem_<ptr_deref>(content_[i], elem)) return true;
+			if (compare_elem_<ptr_deref>((U)content_[i], elem)) return true;
 		return false;
 	}
 
-	//returns reference to_ element, for which "f"'s return value is equal to_ "val"
-	template<typename cT, typename Y>
-	enable_if<std::is_same<decay<T>, decay<Y>>::value,
-		T&> find_by(cT(*f)(Y), cT val)
+	//returns reference to element, for which "fn"'s return value is equal to "val"
+	template<typename cT, typename F>
+	T& find_by(F&& fn, cT val)
 	{
 		for (size_t i = 0; i < size_; ++i)
-			if ((*f)(content_[i]) == val) return content_[i];
+			if (fn(content_[i]) == val) return content_[i];
 		throw(ERR_NOT_FOUND);
 	}
 
-	//returns reference to_ element, "member"'s value of which is equal to_ "val"
+	//returns reference to element, "member"'s value of which is equal to "val"
 	template<typename cT, typename Y = T>
-	enable_if<std::is_class<Y>::value, Y&>
-		find_by(cT Y::*member, cT val)
+	enable_if<std::is_class<Y>::value, 
+		Y&>	find_by(cT Y::*member, cT&& val)
 	{
 		for (size_t i = 0; i < size_; ++i)
 			if (content_[i].*member == val) return content_[i];
@@ -1328,7 +1336,7 @@ public:
 	}
 
 	//moves elements "n" fields forward / backward (if "n" < 0)
-	//making them to_ appear on the beginning / end
+	//making them to appear on the beginning / end
 	vector_<T>& shift(int n)
 	{
 		if (n %= int(size_)) {
@@ -1358,7 +1366,7 @@ public:
 		return !bool(size_);
 	}
 
-	//passes content to_ std::cout stream with "separator" after each
+	//passes content to std::cout stream with "separator" after each
 	void disp(const char separator = ' ',
 		std::ostream& os = std::cout,
 		const char ending = '\n') const
@@ -1381,7 +1389,7 @@ public:
 		os << ending;
 	}
 
-	//passes content to_ output stream
+	//passes content to output stream
 	template<typename Y>
 	friend enable_if<std::is_same<decay<Y>, char>::value,
 		std::ostream&> operator<<(std::ostream &os, const vector_<Y> &arr);
@@ -1390,7 +1398,7 @@ public:
 	friend enable_if< !std::is_same<decay<Y>, char>::value,
 		std::ostream&> operator<<(std::ostream &os, const vector_<Y> &arr);
 
-	//pushes back new element from_ input stream
+	//pushes back new element from input stream
 	friend std::istream &operator>>(std::istream &is, vector_<T> &arr)
 	{
 		if (arr.size_ == arr.reserved_)
@@ -1400,22 +1408,21 @@ public:
 	}
 
 	//calls function on every element
-	template<typename R>
-	vector_<T>& call(R(*f)(T&))
+	template<typename F>
+	vector_<T>& call(F&& fn)
 	{
 		for (int i = 0; i<size_; ++i) {
-			f(content_[i]);
+			fn(content_[i]);
 		}
 		return *this;
 	}
 
 	//calls function on every element for which condition is true
-	template<typename R, typename cT>
-	enable_if<std::is_same<decay<T>, decay<cT>>::value,
-		vector_<T>&> call_if(bool(*condition)(cT), R(*f)(T&))
+	template<typename C, typename F>
+	vector_<T>& call_if(C&& cond, F&& fn)
 	{
 		for (int i = 0; i<size_; ++i) {
-			if (condition(content_[i])) f(content_[i]);
+			if (cond(content_[i])) fn(content_[i]);
 		}
 		return *this;
 	}
@@ -1432,12 +1439,11 @@ public:
 	}
 
 	//checks if condition is true for every element
-	template<typename Y>
-	enable_if<std::is_same<decay<T>, decay<Y>>::value,
-		bool> true_for_all(bool(*f)(Y))
+	template<typename F>
+	bool true_for_all(F&& fn)
 	{
 		for (int i = 0; i<size_; ++i)
-			if (!f(content_[i])) return false;
+			if (!fn(content_[i])) return false;
 		return true;
 	}
 
@@ -1488,12 +1494,12 @@ public:
 	}
 
 	//returns std::vector with non trivial copy of content
-	std::vector<T> to_std_vector()
+	std::vector<T> tostd_vector()
 	{
 		return std::vector<T>(content_, content_ + size_ - 1);
 	}
 
-	std::list<T> to_std_list()
+	std::list<T> tostd_list()
 	{
 		std::list<T> ret;
 		int i = size_;
