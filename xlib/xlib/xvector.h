@@ -9,7 +9,7 @@
 #include <iostream>
 #include <string>
 #include "more_type_traits.h"
-#include "xrnd.h"
+//#include "xrnd.h"
 #include <map>
 
 #define DEBUG 0
@@ -22,7 +22,8 @@ __forceinline int sgn(T val) {
 	return (T(0) < val) - (val < T(0));
 }
 
-namespace x {
+namespace x
+{
 
 template<typename> class vector_;
 
@@ -39,7 +40,8 @@ struct vector_nd_<T_, 0>
 	using type = T_;
 };
 
-namespace vector_opt {
+namespace vector_opt
+{
 enum fn_options
 {
 	PTR_DELETE = 1,
@@ -259,9 +261,9 @@ public:
 	{
 		vector_<T>& obj;
 		size_t pos;
-		iterator(vector_<T>& obj) : obj{obj}, pos{0} {}
-		iterator(vector_<T>& obj, size_t pos) : obj{obj}, pos{pos} {}
-		iterator(const iterator& other) : obj{other.obj}, pos{other.pos} {}
+		iterator(vector_<T>& obj): obj{obj}, pos{0} {}
+		iterator(vector_<T>& obj, size_t pos): obj{obj}, pos{pos} {}
+		iterator(const iterator& other): obj{other.obj}, pos{other.pos} {}
 		__forceinline iterator& operator++() {
 			++pos; return *this;
 		}
@@ -294,7 +296,7 @@ public:
 		}
 
 		/*__forceinline bool operator<(const size_t& i) const {
-			return pos < i;
+		return pos < i;
 		}*/
 
 		__forceinline bool operator>(const iterator& other) const {
@@ -318,9 +320,9 @@ public:
 	{
 		const vector_<T>& obj;
 		size_t pos;
-		const_iterator(const vector_<T>& obj) : obj{obj}, pos{0} {}
-		const_iterator(const vector_<T>& obj, size_t pos) : obj{obj}, pos{pos} {}
-		const_iterator(const const_iterator& other) : obj{other.obj}, pos{other.pos} {}
+		const_iterator(const vector_<T>& obj): obj{obj}, pos{0} {}
+		const_iterator(const vector_<T>& obj, size_t pos): obj{obj}, pos{pos} {}
+		const_iterator(const const_iterator& other): obj{other.obj}, pos{other.pos} {}
 		__forceinline const_iterator& operator++() {
 			++pos;
 			return *this;
@@ -376,12 +378,12 @@ public:
 	{
 		vector_<T>& obj;
 		size_t pos;
-		loop_iterator(vector_<T>& obj) : obj{obj}, pos{0} {}
-		loop_iterator(vector_<T>& obj, size_t pos) : obj{obj}, pos{pos} {
+		loop_iterator(vector_<T>& obj): obj{obj}, pos{0} {}
+		loop_iterator(vector_<T>& obj, size_t pos): obj{obj}, pos{pos} {
 			if (pos>=obj.size_)
 				pos = pos % obj.size_;
 		}
-		loop_iterator(const loop_iterator& other) : obj{other.obj}, pos{other.pos} {
+		loop_iterator(const loop_iterator& other): obj{other.obj}, pos{other.pos} {
 		}
 		__forceinline loop_iterator& operator++() {
 			if (++pos >= obj.size_) pos = 0;
@@ -427,7 +429,7 @@ public:
 			return pos >= other.pos;
 		}
 		__forceinline loop_iterator& operator=(const loop_iterator& other) {
-			pos = other.pos; 
+			pos = other.pos;
 			return *this;
 		}
 		__forceinline operator bool() {
@@ -439,12 +441,12 @@ public:
 	{
 		const vector_<T>& obj;
 		size_t pos;
-		const_loop_iterator(const vector_<T>& obj) : obj{obj}, pos{0} {}
-		const_loop_iterator(const vector_<T>& obj, size_t pos) : obj{obj}, pos{pos} {
+		const_loop_iterator(const vector_<T>& obj): obj{obj}, pos{0} {}
+		const_loop_iterator(const vector_<T>& obj, size_t pos): obj{obj}, pos{pos} {
 			if (pos>=obj.size_)
 				pos = pos % obj.size_;
 		}
-		const_loop_iterator(const const_loop_iterator& other) : obj{other.obj}, pos{other.pos} {
+		const_loop_iterator(const const_loop_iterator& other): obj{other.obj}, pos{other.pos} {
 		}
 		__forceinline const_loop_iterator& operator++() {
 			if (++pos >= obj.size_) pos = 0;
@@ -531,38 +533,38 @@ public:
 		return const_loop_iterator(*this, size_);
 	}
 
-	vector_() :
+	vector_():
 		content_(alloc_(default_alloc_)), size_(0)
 	{
 	}
 
-	vector_(unsigned size, bool useable = false) :
+	vector_(unsigned size, bool useable = false):
 		content_(alloc_(size)), size_(useable ? size : 0)
 	{
 	}
 
-	vector_(T* arr, size_t size, size_t extra = 0) :
+	vector_(T* arr, size_t size, size_t extra = 0):
 		content_(alloc_(size + extra)),
 		size_(size)
 	{
 		copy_(content_, arr, size_);
 	}
 	template<size_t size>
-	vector_(const T(&arr)[size], size_t extra = 0) :
+	vector_(const T(&arr)[size], size_t extra = 0):
 		content_(alloc_(size + extra)),
 		size_(size)
 	{
 		copy_(content_, static_cast<const T*>(arr), size_);
 	}
 
-	vector_(const T* arr, size_t size) :
+	vector_(const T* arr, size_t size):
 		content_(alloc_(size)),
 		size_(size)
 	{
 		copy_(content_, arr, size_);
 	}
 
-	vector_(std::initializer_list<T> arr) :
+	vector_(std::initializer_list<T> arr):
 		content_(alloc_(arr.size())),
 		size_(arr.size())
 	{
@@ -581,14 +583,14 @@ public:
 	content_ = new T[size_]{elements...};
 	}*/
 
-	vector_(const vector_<T>& other) :
+	vector_(const vector_<T>& other):
 		content_{alloc_(other.size_ ? other.size_ : default_alloc_)},
 		size_{other.size_}
 	{
 		if (size_) copy_(content_, other.content_, size_);
 	}
 
-	vector_(const std::vector<T>& vec) :
+	vector_(const std::vector<T>& vec):
 		content_{alloc_(vec.size() ? int(vec.size()) : default_alloc_)},
 		size_{int(vec.size())}
 	{
@@ -596,7 +598,7 @@ public:
 	}
 
 	template<typename Y = T>
-	vector_(enable_if<std::is_same<decay<Y>, char>::value, const std::string&> str) :
+	vector_(enable_if<std::is_same<decay<Y>, char>::value, const std::string&> str):
 		content_(alloc_(str.size()+1)),
 		size_(str.size()+1)
 	{
@@ -604,19 +606,19 @@ public:
 	}
 
 	/*template<typename I>
-	vector_(enable_if<std::is_fundamental<I>::value, 
-		T(*)(I)> fn, I from, I to, I d = 1) :
-		content_(alloc_(abs((to - from) / d) + 1)),
-		size_(abs((to - from) / d) + 1)
+	vector_(enable_if<std::is_fundamental<I>::value,
+	T(*)(I)> fn, I from, I to, I d = 1) :
+	content_(alloc_(abs((to - from) / d) + 1)),
+	size_(abs((to - from) / d) + 1)
 	{
-		generate(fn, from, d);
+	generate(fn, from, d);
 	}*/
 	template<typename F, typename I>
-	vector_(F&& fn, I from, I to, I d = 1) :
+	vector_(F&& fn_, I from, I to, I d = 1):
 		content_(alloc_(abs((to - from) / d) + 1)),
 		size_(abs((to - from) / d) + 1)
 	{
-		generate(fn, from, d);
+		generate(fn_, from, d);
 	}
 
 	__forceinline constexpr size_t dim() const
@@ -681,8 +683,8 @@ public:
 		return size_;
 	}
 
-	template<typename Y=T>
-	operator enable_if<std::is_same<decay<Y>,char>::value,
+	template<typename Y = T>
+	operator enable_if<std::is_same<decay<Y>, char>::value,
 		std::string>() const
 	{
 		return std::string(content_);
@@ -701,8 +703,18 @@ public:
 		return result.append(other);
 	}
 
-	template<bool ptr_deref = false>
-	bool identical(const vector_<T>& other)
+	template<bool ptr_deref = false, typename Y = T>
+	enable_if<std::is_trivial<Y>::value && !ptr_deref,
+		bool> identical(const vector_<T>& other)
+	{
+		if (size_ == other.size_)
+			return memcmp(content_, other.content_, size_) == 0;
+		return false;
+	}
+
+	template<bool ptr_deref = false, typename Y = T>
+	enable_if<!std::is_trivial<Y>::value || ptr_deref,
+		bool> identical(const vector_<T>& other)
 	{
 		if (size_ != other.size_)
 			return false;
@@ -767,9 +779,19 @@ public:
 	//in range <"p1","p2"> inclusive
 	vector_<T> subset(size_t p1, size_t p2) const
 	{
-		if (size_ && (p2 > p1)) {
+		if (size_ && (p2 >= p1)) {
 			vector_<T> sub(p2-p1+1, true);
 			copy_(sub.content_, content_+p1, sub.size_);
+			return sub;
+		}
+		return vector_<T>();
+	}
+
+	__forceinline vector_<T> subset(size_t p) const
+	{
+		if (size_) {
+			vector_<T> sub(size_-p, true);
+			copy_(sub.content_, content_+p, sub.size_);
 			return sub;
 		}
 		return vector_<T>();
@@ -860,14 +882,14 @@ public:
 	//fills content with values of a function for specified arguments
 	template<typename F, typename I>
 	enable_if<std::is_fundamental<I>::value,
-		vector_<T>&> generate(F&& fn, I from, I to, I d)
+		vector_<T>&> generate(F&& fn_, I from, I to, I d)
 	{
 		delete[] content_;
 		content_ = alloc_(abs((to - from) / d) + 1);
 		size_ = abs((to - from) / d) + 1;
 		size_t i = 0;
 		for (I x = from; i<size_; x += d) {
-			content_[i++] = fn(x);
+			content_[i++] = fn_(x);
 		}
 		return *this;
 	}
@@ -875,11 +897,11 @@ public:
 	//fills content with values of a function for specified arguments
 	template<typename F, typename I>
 	enable_if<std::is_fundamental<I>::value,
-		vector_<T>&> generate(F&& fn, I from, I d)
+		vector_<T>&> generate(F&& fn_, I from, I d)
 	{
 		size_t i = 0;
 		for (I x = from; i<size_; x += d) {
-			content_[i++] = fn(x);
+			content_[i++] = fn_(x);
 		}
 		return *this;
 	}
@@ -922,8 +944,8 @@ public:
 		}
 		return *this;
 	}
-	
-	template<size_t size, typename Y=T>
+
+	template<size_t size, typename Y = T>
 	vector_<T>& operator=(const Y(&arr)[size])
 	{
 		delete[] content_;
@@ -1003,8 +1025,8 @@ public:
 	//removes up to "n" specified elements "toRem" if such occur.
 	//if "n"=0 removes all
 	//returns number of removed elements
-	template<bool ptr_delete = false, bool ptr_deref = false, typename U, typename Y=T>
-	enable_if<std::is_convertible<Y,U>::value,
+	template<bool ptr_delete = false, bool ptr_deref = false, typename U, typename Y = T>
+	enable_if<std::is_convertible<Y, U>::value,
 		int> remove(U const& val, unsigned max = 0)
 	{
 		int i = -1, lastp = -1, nrem = 0;
@@ -1030,11 +1052,11 @@ public:
 	}
 
 	template<bool ptr_delete = false, typename F>
-	int remove_if(F&& fn, unsigned max = 0)
+	int remove_if(F&& fn_, unsigned max = 0)
 	{
 		int i = -1, lastp = -1, nrem = 0;
 		while (++i < size_) {
-			if (fn(content_[i])) {
+			if (fn_(content_[i])) {
 				destroy_elem_<ptr_delete>(content_[i]);
 				if (i > lastp + nrem) {
 					memcpy(content_ + lastp,
@@ -1055,23 +1077,23 @@ public:
 	}
 
 	template<bool ptr_deref = false, typename F>
-	vector_<T> copy_if(F&& fn)
+	vector_<T> copy_if(F&& fn_)
 	{
 		vector_<T> copied(size_);
 		for (int i = 0; i < size_; ++i) {
-			if (fn(content_[i])) copied.push_back(elem_<ptr_deref>(content_[i]));
+			if (fn_(content_[i])) copied.push_back(elem_<ptr_deref>(content_[i]));
 		}
 		copied.shrink();
 		return copied;
 	}
 
 	template<bool ptr_delete = false, bool ptr_deref = false, typename F>
-	vector_<T> extract_if(F&& fn, unsigned max = 0)
+	vector_<T> extract_if(F&& fn_, unsigned max = 0)
 	{
 		vector_<T> extracted(size_);
 		int i = -1, lastp = -1, nrem = 0;
 		while (++i < size_) {
-			if (fn(content_[i])) {
+			if (fn_(content_[i])) {
 				extracted.push_back(elem_<ptr_deref>(content_[i]));
 				destroy_elem_<ptr_delete>(content_[i]);
 				if (i > lastp + nrem) {
@@ -1274,18 +1296,28 @@ public:
 	}
 
 	//returns reference to element, value of which is equal to "elem"
-	template<bool ptr_deref = false, typename U, typename Y=T>
-	enable_if<std::is_convertible<Y,U>::value, 
+	template<bool refpos = true, bool ptr_deref = false, typename U, typename Y = T>
+	enable_if<std::is_convertible<Y, U>::value,
 		T&> find(U const& elem)
 	{
 		for (size_t i = 0; i < size_; ++i)
-			if (compare_elem_<ptr_deref>((U)content_[i], elem)) 
+			if (compare_elem_<ptr_deref>((U)content_[i], elem))
 				return content_[i];
 		throw(ERR_NOT_FOUND);
 	}
 
-	template<bool ptr_deref = false, typename U, typename Y=T>
-	enable_if<std::is_convertible<Y,U>::value,
+	template<bool refpos = true, bool ptr_deref = false, typename U, typename Y = T>
+	enable_if<std::is_convertible<Y, U>::value,
+		size_t> pos_of(U const& elem) const
+	{
+		for (size_t i = 0; i < size_; ++i)
+			if (compare_elem_<ptr_deref>((U)content_[i], elem))
+				return i;
+		throw(ERR_NOT_FOUND);
+	}
+
+	template<bool ptr_deref = false, typename U, typename Y = T>
+	enable_if<std::is_convertible<Y, U>::value,
 		bool> contain(U const& elem)
 	{
 		for (size_t i = 0; i < size_; ++i)
@@ -1295,16 +1327,16 @@ public:
 
 	//returns reference to element, for which "fn"'s return value is equal to "val"
 	template<typename cT, typename F>
-	T& find_by(F&& fn, cT val)
+	T& find_by(F&& fn_, cT val)
 	{
 		for (size_t i = 0; i < size_; ++i)
-			if (fn(content_[i]) == val) return content_[i];
+			if (fn_(content_[i]) == val) return content_[i];
 		throw(ERR_NOT_FOUND);
 	}
 
 	//returns reference to element, "member"'s value of which is equal to "val"
 	template<typename cT, typename Y = T>
-	enable_if<std::is_class<Y>::value, 
+	enable_if<std::is_class<Y>::value,
 		Y&>	find_by(cT Y::*member, cT&& val)
 	{
 		for (size_t i = 0; i < size_; ++i)
@@ -1409,20 +1441,20 @@ public:
 
 	//calls function on every element
 	template<typename F>
-	vector_<T>& call(F&& fn)
+	vector_<T>& call(F&& fn_)
 	{
 		for (int i = 0; i<size_; ++i) {
-			fn(content_[i]);
+			fn_(content_[i]);
 		}
 		return *this;
 	}
 
 	//calls function on every element for which condition is true
 	template<typename C, typename F>
-	vector_<T>& call_if(C&& cond, F&& fn)
+	vector_<T>& call_if(C&& cond, F&& fn_)
 	{
 		for (int i = 0; i<size_; ++i) {
-			if (cond(content_[i])) fn(content_[i]);
+			if (cond(content_[i])) fn_(content_[i]);
 		}
 		return *this;
 	}
@@ -1440,10 +1472,10 @@ public:
 
 	//checks if condition is true for every element
 	template<typename F>
-	bool true_for_all(F&& fn)
+	bool true_for_all(F&& fn_)
 	{
 		for (int i = 0; i<size_; ++i)
-			if (!fn(content_[i])) return false;
+			if (!fn_(content_[i])) return false;
 		return true;
 	}
 
