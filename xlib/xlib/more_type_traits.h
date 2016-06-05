@@ -1,5 +1,5 @@
-#ifndef more_type_traits_
-#define more_type_traits_
+#ifndef	MORE_TYPE_TRAITS_H
+#define MORE_TYPE_TRAITS_H
 
 #include <type_traits>
 
@@ -7,10 +7,12 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
-struct __True {
+struct __True
+{
 	__True() {}
 };
-struct __False {
+struct __False
+{
 	__False(__True) {}
 };
 
@@ -135,7 +137,7 @@ template<typename T, typename... Y_>
 struct is_any_of {};
 
 template<typename T, typename Y, typename... Y_>
-struct is_any_of<T,Y,Y_...>
+struct is_any_of<T, Y, Y_...>
 {
 	static constexpr bool value = std::is_same<T, Y>::value ||
 		is_any_of<T, Y_...>::value;
@@ -151,8 +153,8 @@ struct is_any_of<T, Y_>
 //////////////////////////////////////////////////////////////////////////////
 
 template<typename T, typename... Y>
-using select_any = typename 
-	std::conditional<is_any_of<T,Y...>::value, 
+using select_any = typename
+std::conditional<is_any_of<T, Y...>::value,
 	T, __False>::type;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -208,6 +210,32 @@ constexpr bool is_argument_of(R(*const)())
 
 //////////////////////////////////////////////////////////////////////////////
 
+template<typename R, typename... A>
+constexpr unsigned argnum(R(*)(A...))
+{
+	return sizeof...(A);
+}
+
+template<typename T, typename R, typename... A>
+constexpr unsigned argnum(R(T::*)(A...))
+{
+	return sizeof...(A);
+}
+
+template<typename F>
+unsigned argnum(F&&)
+{
+	return argnum(&F::operator());
+}
+
+template<typename F>
+constexpr unsigned argnum()
+{
+	return argnum(&F::operator());
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
 template<bool...>
 struct any_true;
 
@@ -246,18 +274,43 @@ struct all_true<b>
 
 //////////////////////////////////////////////////////////////////////////////
 
+template<int...>
+struct sum;
+
+template<int n, int... rest>
+struct sum<n, rest...>
+{
+	static constexpr int value = n + sum<rest...>::value;
+};
+
+template<int n>
+struct sum<n>
+{
+	static constexpr int value = n;
+};
+
+template<>
+struct sum<>
+{
+	static constexpr int value = 0;
+};
+
+//////////////////////////////////////////////////////////////////////////////
+
 template<typename...>
 struct every_is;
 
 template<typename C, typename T, typename... Y>
-struct every_is<C, T, Y...> {
+struct every_is<C, T, Y...>
+{
 	static constexpr bool value =
 		std::is_same<C, T>::value &&
 		every_is<C, Y...>::value;
 };
 
 template<typename C, typename T>
-struct every_is<C, T> {
+struct every_is<C, T>
+{
 	static constexpr bool value =
 		std::is_same<C, T>::value;
 };
@@ -265,7 +318,8 @@ struct every_is<C, T> {
 //////////////////////////////////////////////////////////////////////////////
 
 template<typename... T>
-struct all_same {
+struct all_same
+{
 	static constexpr bool value =
 		every_is<typename select<1, T...>::type, T...>::value;
 };
@@ -324,7 +378,7 @@ struct select<n, T, T_...>
 template<size_t n, typename T>
 struct select<n, T>
 {
-	static_assert(n < 2, 
+	static_assert(n < 2,
 		"Type selection iterator exceeds the parameter pack.");
 	typename T type;
 
@@ -394,7 +448,7 @@ struct find_type
 	{
 		static constexpr size_t value =
 			find_<T, 1, Y_...>::value;
-	};	
+	};
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -449,10 +503,10 @@ template<unsigned...>
 struct seq {};
 
 template<unsigned N, unsigned... Is>
-struct gen_seq : gen_seq<N - 1, N - 1, Is...> { };
+struct gen_seq: gen_seq<N - 1, N - 1, Is...> {};
 
 template<unsigned... Is>
-struct gen_seq<0, Is...> : seq<Is...> { };
+struct gen_seq<0, Is...>: seq<Is...> {};
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -470,7 +524,7 @@ struct same_template<T1<Y1...>, T2<Y2...>>
 };
 
 template<
-	template<typename...> typename T1, 
+	template<typename...> typename T1,
 	typename... Y1,
 	typename... Y2>
 struct same_template<T1<Y1...>, T1<Y2...>>
@@ -487,4 +541,4 @@ struct is_comparable
 	static constexpr bool value = any_true<has_compare_op<T, bool, Y>::value...>::value;
 };
 
-#endif //more_type_traits_
+#endif //MORE_TYPE_TRAITS_H
