@@ -802,7 +802,8 @@ public:
 	enable_if<std::is_pointer<Y>::value && ptr_delete,
 		vector_<T>&> cut(size_t p1, size_t p2)
 	{
-		if (size_ && (p2 > p1)) {
+		if (p2 >= size_) p2 = size_-1;
+		if ((int)p2-(int)p1 > 0) {
 			for (size_t i = 0; i < p1; ++i)
 				delete content_[i];
 			for (size_t i = p2 + 1; i < size_; ++i)
@@ -810,16 +811,21 @@ public:
 			memcpy(content_, content_+p1, T_size_*(p2-p1+1));
 			size_ = p2-p1+1;
 		}
+		else size_ = 0;
+
 		return *this;
 	}
 	template<bool ptr_delete = false, typename Y = T>
 	enable_if<!std::is_pointer<Y>::value || !ptr_delete,
 		vector_<T>&> cut(size_t p1, size_t p2)
 	{
-		if (size_ && (p2 > p1)) {
+		if (p2 >= size_) p2 = size_-1;
+		if ((int)p2-(int)p1 > 0) {
 			memcpy(content_, content_ + p1, T_size_*(p2 - p1 + 1));
 			size_ = p2 - p1 + 1;
 		}
+		else size_ = 0;
+
 		return *this;
 	}
 
@@ -1526,12 +1532,12 @@ public:
 	}
 
 	//returns std::vector with non trivial copy of content
-	std::vector<T> tostd_vector()
+	std::vector<T> to_std_vector()
 	{
 		return std::vector<T>(content_, content_ + size_ - 1);
 	}
 
-	std::list<T> tostd_list()
+	std::list<T> to_std_list()
 	{
 		std::list<T> ret;
 		int i = size_;
@@ -1612,7 +1618,7 @@ using vector = typename std::conditional<dim_==1, vector_<T>,
 	typename vector_nd_<T, dim_>::type>::type;
 
 using string = vector_<char>;
-
+using wstring = vector_<wchar_t>;
 
 template<typename Y>
 enable_if<std::is_same<decay<Y>, char>::value,
