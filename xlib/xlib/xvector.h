@@ -549,17 +549,20 @@ public:
 	{
 		copy_(content_, arr, size_);
 	}
-	template<size_t size>
+
+	template<size_t size, typename Y=T, typename = enable_if<!std::is_same<decay<Y>, char>::value>>
 	vector_(const T(&arr)[size], size_t extra = 0):
 		content_(alloc_(size + extra)),
 		size_(size)
 	{
 		copy_(content_, static_cast<const T*>(arr), size_);
+		std::cout<<content_;
 	}
 
-	vector_(const T* arr, size_t size):
-		content_(alloc_(size)),
-		size_(size)
+	template<typename Y=T, typename = enable_if<std::is_same<decay<Y>, char>::value>>
+	vector_(const T* arr):
+		content_{alloc_(strlen(arr)+1)},
+		size_{reserved_}
 	{
 		copy_(content_, arr, size_);
 	}
@@ -587,18 +590,19 @@ public:
 		content_{alloc_(other.size_ ? other.size_ : default_alloc_)},
 		size_{other.size_}
 	{
+		//std::cout<<"copy\n";
 		if (size_) copy_(content_, other.content_, size_);
 	}
 
-	vector_(const std::vector<T>& vec):
+	explicit vector_(const std::vector<T>& vec):
 		content_{alloc_(vec.size() ? int(vec.size()) : default_alloc_)},
 		size_{int(vec.size())}
 	{
 		if (size_) copy_(content_, vec.data(), size_);
 	}
 
-	template<typename Y = T>
-	vector_(enable_if<std::is_same<decay<Y>, char>::value, const std::string&> str):
+	template<typename Y = T, typename  = enable_if<std::is_same<decay<Y>, char>::value>>
+	explicit vector_(const std::string&> str):
 		content_(alloc_(str.size()+1)),
 		size_(str.size()+1)
 	{
@@ -1593,6 +1597,7 @@ public:
 
 	~vector_()
 	{
+		//std::cout<<"destr "<<content_<<std::endl;
 		if (force_single_shallow_delete__) {
 			force_single_shallow_delete__ = false;
 		}
