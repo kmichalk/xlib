@@ -87,6 +87,14 @@ public:
 		return (bool)fn_;
 	}
 
+	void clear()
+	{
+		if (fn_) {
+			delete fn_;
+			fn_ = nullptr;
+		}
+	}
+
 	~Fn()
 	{
 		delete fn_;
