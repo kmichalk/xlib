@@ -66,9 +66,9 @@ public:
 	{
 	}
 
-	timer(long double disp_ratio) :
+	timer(long double dispRatio) :
 		time_(0),
-		ratio_(disp_ratio)
+		ratio_(dispRatio)
 	{
 	}
 
@@ -88,21 +88,21 @@ public:
 			std::chrono::system_clock::now().time_since_epoch());
 	}
 
-	timer<Unit>& toc()
+	long double toc()
 	{
 		to_ = std::chrono::duration_cast<Unit>(
 			std::chrono::system_clock::now().time_since_epoch());
 		time_ =
 			to_.count() -
 			from_.count();
-		return *this;
+		return (*this)();
 	}
 
 	long double measure()
 	{
 		toc();
 		tic();
-		return time_;
+		return (*this)();
 	}
 
 	void sleep(long double seconds)
