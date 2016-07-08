@@ -40,6 +40,8 @@ class Fn<R(A...)>
 		}
 	};
 
+	enum error_num { empty_fn };
+
 	Eraser_* fn_;
 
 public:
@@ -85,6 +87,14 @@ public:
 	__forceinline bool empty() const
 	{
 		return (bool)fn_;
+	}
+
+	__forceinline R call(A... args) const
+	{
+		if (fn_)
+			return (*fn_)(std::forward<A>(args)...);
+		else
+			throw y::error<Fn<R(A...)>>{empty_fn, "Function is empty."};
 	}
 
 	void clear()
