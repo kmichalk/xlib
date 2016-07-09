@@ -117,46 +117,49 @@ class FnCall;
 template<typename R, typename... A>
 class FnCall<R(A...)>
 {
+public:
+	static constexpr unsigned size = sizeof...(A);
+private:
 	using fnptr = R(*)(A...);
-	static constexpr unsigned nArgs = sizeof...(A);
 	class Eraser_ {};
 
 	template<typename T>
-	class Argument_: public Eraser_
+	class Concrete_: public Eraser_
 	{
 	public:
 		T value;
-		Argument_(T const& value):
+		Concrete_(T const& value):
 			value{value}
 		{
 		}
 	};
 
 	fnptr fn_;
-	Eraser_** args_;
+	Eraser_* args_[size];
 
-	template<int... i>
+	/*template<int... i>
 	void assign_(seq<i...>&, A const&... args)
 	{
-		args_ = new Eraser_*[nArgs] { new Argument_<A>{args}... };
-	}
+		args_ = new Eraser_*[size] { new Concrete_<A>{args}... };
+	}*/
 
 	template<int... i>
 	__forceinline R call_(seq<i...>&) const
 	{
-		return fn_(static_cast<Argument_<x::select_t<i+1, A...>>*>(args_[i])->value...);
+		return fn_(static_cast<Concrete_<x::select_t<i+1, A...>>*>(args_[i])->value...);
 	}
 
 public:
 	FnCall(fnptr fn, A const&... args):
+		args_{(new Concrete_<A>{args})...},
 		fn_{fn}
 	{
-		assign_(gen_seq<nArgs>{}, args...);
+		//assign_(gen_seq<size>{}, args...);
 	}
 
 	inline R operator()() const
 	{
-		return call_(gen_seq<nArgs>{});
+		return call_(gen_seq<size>{});
 	}
 
 };
@@ -164,16 +167,18 @@ public:
 template<class C, typename R, typename... A>
 class FnCall<C, R(A...)>
 {
+public:
+	static constexpr unsigned size = sizeof...(A);
+private:
 	using fnptr = R(C::*)(A...);
-	static constexpr unsigned nArgs = sizeof...(A);
 	class Eraser_ {};
 
 	template<typename T>
-	class Argument_: public Eraser_
+	class Concrete_: public Eraser_
 	{
 	public:
 		T value;
-		Argument_(T const& value):
+		Concrete_(T const& value):
 			value{value}
 		{
 		}
@@ -181,30 +186,31 @@ class FnCall<C, R(A...)>
 
 	C* obj_;
 	fnptr fn_;
-	Eraser_** args_;
+	Eraser_* args_[size];
 
-	template<int... i>
+	/*template<int... i>
 	void assign_(seq<i...>&, A const&... args)
 	{
-		args_ = new Eraser_*[nArgs] { new Argument_<A>{args}... };
-	}
+		args_ = new Eraser_*[size] { new Concrete_<A>{args}... };
+	}*/
 
 	template<int... i>
 	__forceinline R call_(seq<i...>&) const
 	{
-		return (obj_->*fn_)(static_cast<Argument_<x::select_t<i+1, A...>>*>(args_[i])->value...);
+		return (obj_->*fn_)(static_cast<Concrete_<x::select_t<i+1, A...>>*>(args_[i])->value...);
 	}
 
 public:
 	FnCall(C* obj, fnptr fn, A const&... args):
+		args_{(new Concrete_<A>{args})...},
 		obj_{obj}, fn_{fn}
 	{
-		assign_(gen_seq<nArgs>{}, args...);
+		//assign_(gen_seq<size>{}, args...);
 	}
 
 	inline R operator()() const
 	{
-		return call_(gen_seq<nArgs>{});
+		return call_(gen_seq<size>{});
 	}
 
 };
@@ -212,45 +218,48 @@ public:
 template<typename R, typename... A>
 class FnCall<Fn<R(A...)>>
 {
-	static constexpr unsigned nArgs = sizeof...(A);
+public:
+	static constexpr unsigned size = sizeof...(A);
+private:
 	class Eraser_ {};
 
 	template<typename T>
-	class Argument_: public Eraser_
+	class Concrete_: public Eraser_
 	{
 	public:
 		T value;
-		Argument_(T const& value):
+		Concrete_(T const& value):
 			value{value}
 		{
 		}
 	};
 
 	Fn<R(A...)> fn_;
-	Eraser_** args_;
+	Eraser_* args_[size];
 
-	template<int... i>
+	/*template<int... i>
 	void assign_(seq<i...>&, A const&... args)
 	{
-		args_ = new Eraser_*[nArgs] { new Argument_<A>{args}... };
-	}
+		args_ = new Eraser_*[size] { new Concrete_<A>{args}... };
+	}*/
 
 	template<int... i>
 	__forceinline R call_(seq<i...>&) const
 	{
-		return fn_(static_cast<Argument_<x::select_t<i+1, A...>>*>(args_[i])->value...);
+		return fn_(static_cast<Concrete_<x::select_t<i+1, A...>>*>(args_[i])->value...);
 	}
 
 public:
 	FnCall(Fn<R(A...)> const& fn, A const&... args):
+		args_{(new Concrete_<A>{args})...},
 		fn_{fn}
 	{
-		assign_(gen_seq<nArgs>{}, args...);
+		//assign_(gen_seq<size>{}, args...);
 	}
 
 	inline R operator()() const
 	{
-		return call_(gen_seq<nArgs>{});
+		return call_(gen_seq<size>{});
 	}
 };
 
@@ -260,17 +269,17 @@ public:
 //template<typename R, typename... A>
 //class UniFnCall<R(A...)>
 //{
-//	static constexpr unsigned nArgs = sizeof...(A);
+//	static constexpr unsigned size = sizeof...(A);
 //
 //	class Eraser_
 //	{};
 //
 //	template<typename T>
-//	class Argument_ : public Eraser_
+//	class Concrete_ : public Eraser_
 //	{
 //	public:
 //		T value;
-//		Argument_(T const& value):
+//		Concrete_(T const& value):
 //			value{ value }
 //		{
 //		}
@@ -282,25 +291,25 @@ public:
 //	template<int... i>
 //	void assign_(seq<i...>&, A const&... args)
 //	{
-//		args_ = new Eraser_*[nArgs]{ new Argument_<A>{ args }... };
+//		args_ = new Eraser_*[size]{ new Concrete_<A>{ args }... };
 //	}
 //
 //	template<int... i>
 //	__forceinline R call_(seq<i...>&) const
 //	{
-//		return fn_(static_cast<Argument_<x::select_t<i+1, A...>>*>(args_[i])->value...);
+//		return fn_(static_cast<Concrete_<x::select_t<i+1, A...>>*>(args_[i])->value...);
 //	}
 //
 //public:
 //	UniFnCall(Fn<R(A...)> const& fn, A const&... args):
 //		fn_{fn}
 //	{
-//		assign_(gen_seq<nArgs>{}, args...);
+//		assign_(gen_seq<size>{}, args...);
 //	}
 //
 //	inline R operator()() const
 //	{
-//		return call_(gen_seq<nArgs>{});
+//		return call_(gen_seq<size>{});
 //	}
 //
 //};
@@ -308,7 +317,7 @@ public:
 //template<typename R, typename A>
 //class UniFnCall<R(A)>
 //{
-//	static constexpr unsigned nArgs = 1;
+//	static constexpr unsigned size = 1;
 //
 //	Fn<R(A)> fn_;
 //	A arg_;
@@ -328,7 +337,7 @@ public:
 //template<typename R, typename A1, typename A2>
 //class UniFnCall<R(A1,A2)>
 //{
-//	static constexpr unsigned nArgs = 1;
+//	static constexpr unsigned size = 1;
 //
 //	Fn<R(A1,A2)> fn_;
 //	A1 arg1_;
