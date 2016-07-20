@@ -41,82 +41,82 @@ namespace logic
 		return result;
 	}
 
-	template<unsigned n>
-	class logical
-	{
-	public:
-		enum class Value { min = 0, max = n-1 };
-	private:
-		Value value;
-	public:
+	//template<unsigned n>
+	//class logical
+	//{
+	//public:
+	//	enum class Value { min = 0, max = n-1 };
+	//private:
+	//	Value value;
+	//public:
 
-		logical():
-			value{Value::min}
-		{
-		}
-		logical(Value value):
-			value{value}
-		{
-		}
-		logical(logical<n> const& other):
-			value{other.value}
-		{
-		}
-		logical(bool value):
-			value{value ? Value::max : Value::min}
-		{
-		}
+	//	logical():
+	//		value{Value::min}
+	//	{
+	//	}
+	//	logical(Value value):
+	//		value{value}
+	//	{
+	//	}
+	//	logical(logical<n> const& other):
+	//		value{other.value}
+	//	{
+	//	}
+	//	logical(bool value):
+	//		value{value ? Value::max : Value::min}
+	//	{
+	//	}
 
-		static int min()
-		{
-			return (int)Value::min;
-		}
-		static int max()
-		{
-			return (int)Value::max;
-		}
+	//	static int min()
+	//	{
+	//		return (int)Value::min;
+	//	}
+	//	static int max()
+	//	{
+	//		return (int)Value::max;
+	//	}
 
-		__forceinline logical<n>& operator=(logical<n> const& other)
-		{
-			value = other.value;
-			return *this;
-		}
-		__forceinline bool operator==(logical<n> const& other) const
-		{
-			return value==other.value;
-		}
-		__forceinline bool operator!=(logical<n> const& other) const
-		{
-			return value!=other.value;
-		}
-		__forceinline logical<n>& operator&=(logical<n> const& other)
-		{
-			value = x::min(value, other.value);
-			return *this;
-		}
-		__forceinline logical<n>& operator|=(logical<n> const& other)
-		{
-			value = x::max(value, other.value);
-			return *this;
-		}
+	//	__forceinline logical<n>& operator=(logical<n> const& other)
+	//	{
+	//		value = other.value;
+	//		return *this;
+	//	}
+	//	__forceinline bool operator==(logical<n> const& other) const
+	//	{
+	//		return value==other.value;
+	//	}
+	//	__forceinline bool operator!=(logical<n> const& other) const
+	//	{
+	//		return value!=other.value;
+	//	}
+	//	__forceinline logical<n>& operator&=(logical<n> const& other)
+	//	{
+	//		value = x::min(value, other.value);
+	//		return *this;
+	//	}
+	//	__forceinline logical<n>& operator|=(logical<n> const& other)
+	//	{
+	//		value = x::max(value, other.value);
+	//		return *this;
+	//	}
 
-		__forceinline logical<n> operator&(logical<n> const& other) const
-		{
-			return logical<n>{x::min(value, other.value)};
-		}
-		__forceinline logical<n> operator|(logical<n> const& other) const
-		{
-			return logical<n>{x::max(value, other.value)};
-		}
-		__forceinline logical<n> impl(logical<n> const& other) const
-		{
-			return logical<n>{x::min(Value::max, Value::max-value+other.value)};
-		}
-		__forceinline logical<n> operator!() const
-		{
-			return logical<n>{Value::max-value};
-		}
-	};
+	//	__forceinline logical<n> operator&(logical<n> const& other) const
+	//	{
+	//		return logical<n>{x::min(value, other.value)};
+	//	}
+	//	__forceinline logical<n> operator|(logical<n> const& other) const
+	//	{
+	//		return logical<n>{x::max(value, other.value)};
+	//	}
+	//	__forceinline logical<n> impl(logical<n> const& other) const
+	//	{
+	//		return logical<n>{x::min(Value::max, Value::max-value+other.value)};
+	//	}
+	//	__forceinline logical<n> operator!() const
+	//	{
+	//		return logical<n>{Value::max-value};
+	//	}
+	//};
 
 	enum Method { minmax, algebraic, Hemacher, Einstein, drastic, limited };
 
@@ -146,12 +146,12 @@ namespace logic
 		{
 		}
 
-		static double min()
+		static constexpr double min()
 		{
 			return 0.0;
 		}
 
-		static double max()
+		static constexpr double max()
 		{
 			return 1.0;
 		}
