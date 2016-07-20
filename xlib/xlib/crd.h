@@ -6,10 +6,10 @@
 #define conditional typename std::conditional_t
 #define is_real_type(type) std::is_floating_point<type>::value
 #define is_signed(type) !std::is_unsigned<type>::value
-#define PI 3.14159265359
+#define PI 3.141592653589793
 
 template<typename T = double>
-class coord
+class crd
 {
 	template<typename Y>
 	using is_real_type_ = std::is_floating_point<Y>;
@@ -41,15 +41,15 @@ class coord
 public:
 	T x, y;
 
-	static const coord<T> ZERO;
+	static const crd<T> ZERO;
 
-	coord() :
+	crd() :
 		x{0}, y{0}
 	{}
-	coord(T x, T y) :
+	crd(T x, T y) :
 		x{x}, y{y}
 	{}
-	coord(const coord<T>& other) :
+	crd(const crd<T>& other) :
 		x{other.x}, y{other.y}
 	{}
 
@@ -58,49 +58,49 @@ public:
 		return sqrt(x*x+y*y);
 	}
 
-	T dist(const coord<T>& other) const
+	T dist(const crd<T>& other) const
 	{
 		return (other-(*this)).len();
 	}
 
-	void operator=(const coord<T>& other)
+	void operator=(const crd<T>& other)
 	{
 		x = other.x;
 		y = other.y;
 	}
 	template<typename Y>
-	coord<new_type_<Y>> operator+(const coord<Y>& other) const
+	crd<new_type_<Y>> operator+(const crd<Y>& other) const
 	{
-		return coord<new_type_<Y>>(x+other.x, y+other.y);
+		return crd<new_type_<Y>>(x+other.x, y+other.y);
 	}
 	template<typename Y>
-	coord<new_type_<Y>> operator-(const coord<Y>& other) const
+	crd<new_type_<Y>> operator-(const crd<Y>& other) const
 	{
-		return coord<new_type_<Y>>(x-other.x, y-other.y);
+		return crd<new_type_<Y>>(x-other.x, y-other.y);
 	}
 	template<typename Y>
-	coord<new_type_<Y>> operator*(Y value) const
+	crd<new_type_<Y>> operator*(Y value) const
 	{
-		return coord<new_type_<Y>>(x*value, y*value);
+		return crd<new_type_<Y>>(x*value, y*value);
 	}
 	template<typename Y>
-	new_type_<Y> operator*(const coord<Y>& other) const
+	new_type_<Y> operator*(const crd<Y>& other) const
 	{
 		return x*other.x+y*other.y;
 	}
 	template<typename Y>
-	coord<new_type_<Y>> operator/(Y value) const
+	crd<new_type_<Y>> operator/(Y value) const
 	{
-		return coord<new_type_<Y>>(x/value, y/value);
+		return crd<new_type_<Y>>(x/value, y/value);
 	}
 	template<typename Y>
-	void operator+=(const coord<Y>& other)
+	void operator+=(const crd<Y>& other)
 	{
 		x += other.x;
 		y += other.y;
 	}
 	template<typename Y>
-	void operator-=(const coord<Y>& other)
+	void operator-=(const crd<Y>& other)
 	{
 		x -= other.x;
 		y -= other.y;
@@ -117,25 +117,24 @@ public:
 		x /= value;
 		y /= value;
 	}
-	coord<T> operator-() const
+	crd<T> operator-() const
 	{
-		return coord<T>(-x, -y);
+		return crd<T>(-x, -y);
 	}
-	coord<T> dir() const
+	crd<T> dir() const
 	{
 		T l = len();
-		return coord<T>(x/l, y/l);
+		return crd<T>(x/l, y/l);
 	}
-	coord<T> normal() const
+	crd<T> normal() const
 	{
 		T l = len();
-		return coord<T>(-y/l, x/l);
+		return crd<T>(-y/l, x/l);
 	}
 	T angle() const
 	{
 		T ang = atan2(y, x);
 		if (ang < 0) return ang+(ang < 0)*2*PI;
-
 	}
 	inline void zero()
 	{
@@ -146,7 +145,7 @@ public:
 };
 
 template<typename T>
-const coord<T> coord<T>::ZERO = {0,0};
+const crd<T> crd<T>::ZERO = {0,0};
 
 #undef conditional
 #undef is_real_type
