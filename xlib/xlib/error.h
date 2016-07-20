@@ -10,6 +10,8 @@ class error: public error<void>
 {
 public:
 	using error<void>::error;
+	
+	~error() override {}
 };
 
 
@@ -28,6 +30,8 @@ public:
 	{
 		return os<<"E"<<err.num<<": "<<err.message<<std::endl;
 	}
+
+	virtual ~error() {}
 };
 
 }
