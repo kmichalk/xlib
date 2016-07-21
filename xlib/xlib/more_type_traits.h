@@ -236,6 +236,19 @@ constexpr unsigned argnum()
 
 //////////////////////////////////////////////////////////////////////////////
 
+//template<typename...>
+//struct owner_of {};
+//
+//template<typename T, typename R, typename... A>
+//__forceinline constexpr owner_of<T, R, A...>& _owner_of(R(T::*)(A...))
+//{
+//	return owner_of<T, R, A...>{};
+//}
+//
+//template<
+
+//////////////////////////////////////////////////////////////////////////////
+
 template<bool...>
 struct any_true;
 
@@ -350,7 +363,7 @@ struct all_same
 //};
 
 //////////////////////////////////////////////////////////////////////////////
-
+namespace x{
 template<size_t n, typename... T_>
 struct select;
 template<size_t n, typename T, typename... T_>
@@ -360,7 +373,7 @@ struct select<n, T, T_...>
 		"Given iterator value is 0, which is not valid and equivalent to error-type.");
 	typedef typename select<n - 1, T_...>::type type;
 
-	static T value(T v, T_... v_)
+	/*static T value(T v, T_... v_)
 	{
 		static_assert(all_true<std::is_same<T, T_>::value...>::value,
 			"Value types must be the same.");
@@ -373,7 +386,7 @@ struct select<n, T, T_...>
 		static_assert(all_true<std::is_same<T, T_>::value...>::value,
 			"Value types must be the same.");
 		static constexpr T value = select<n-1, T_...>::elem<v_...>::value;
-	};
+	};*/
 };
 template<size_t n, typename T>
 struct select<n, T>
@@ -382,7 +395,7 @@ struct select<n, T>
 		"Type selection iterator exceeds the parameter pack.");
 	typename T type;
 
-	static T value(T v)
+	/*static T value(T v)
 	{
 		return v;
 	}
@@ -391,14 +404,14 @@ struct select<n, T>
 	struct elem
 	{
 		static constexpr T value = v;
-	};
+	};*/
 };
 template<typename T, typename... T_>
 struct select<1, T, T_...>
 {
 	typedef T type;
 
-	static T value(T v, T_... v_)
+	/*static T value(T v, T_... v_)
 	{
 		return v;
 	}
@@ -407,12 +420,12 @@ struct select<1, T, T_...>
 	struct elem
 	{
 		static constexpr T value = v;
-	};
+	};*/
 };
-//template<typename... T>
-//struct select<0, T...>
-//{
-//};
+
+template<size_t n, typename... T_>
+using select_t = typename select<n, T_...>::type;
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

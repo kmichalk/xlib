@@ -103,7 +103,7 @@ void TimedProcess::process()
 	processTimer_.tic();
 	while (running_) {
 		task();
-		Sleep(x::cutle(processPeriod_-processTimer_.measure()));
+		Sleep(x::cutl(processPeriod_-processTimer_.measure()));
 	}
 }
 

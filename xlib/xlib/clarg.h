@@ -5,33 +5,37 @@
 #include "range.h"
 #include "fn.h"
 
-class Arg
+using namespace std;
+class Value
 {
 public:
 	const x::string name_;
-	Arg(x::string const& name):
-		name_{name}
-	{}
+	Value(x::string const& name):
+		name_(name)
+	{
+	}
+
 	virtual bool pass(x::string const& arg)
 	{
 		return arg==name_;
 	}
-	virtual ~Arg() {}
+
+	virtual ~Value() {}
 };
 
-class BasicArg final: public Arg
+class BasicArg final: public Value
 {
 public:
 	Fn<void()> action_;
 
 	template<typename F>
 	BasicArg(x::string const& name, F&& fn):
-		Arg(name),
+		Value(name),
 		action_{std::forward<F>(fn)}
 	{}
-	bool pass(x::string const& str) final override
+	bool pass(x::string const& arg) final override
 	{
-		if (Arg::pass(str)) {
+		if (Value::pass(arg)) {
 			action_();
 			return true;
 		}
@@ -39,7 +43,7 @@ public:
 	}
 };
 
-class StringArg final : public Arg
+class StringArg final : public Value
 {
 public:
 	Fn<void(x::string const&)> action_;
@@ -47,20 +51,19 @@ public:
 	x::string str_;
 
 	template<typename F>
-	StringArg(x::string const& name, char assignCh, F&& fn):
-		Arg(name),
+	StringArg(x::string name, char assignCh, F&& fn):
+		Value(name),
 		assignCh_{assignCh},
 		action_{std::forward<F>(fn)}
-	{}
+	{
+		std::cout<<name_;
+	}
 	bool pass(x::string const& arg) final override
 	{
 		try {
 			size_t ascPos = arg.pos_of(assignCh_);
-			if (Arg::pass(arg.subset(0, ascPos-1)) &&
-				(str_ = arg.subset(ascPos+1)) &&
-				str_.first()=='"' &&
-				str_.last()=='"' &&
-				str_.cut(1,str_.size()-2)) 
+			if (Value::pass(arg.subset(0, ascPos-1)) &&
+				(str_ = arg.subset(ascPos+1))) 
 			{
 				action_(str_);
 				return true;
@@ -72,7 +75,7 @@ public:
 };
 
 template<typename T>
-class ValueArg final: public Arg
+class ValueArg final: public Value
 {
 public:
 	const char assignCh_;
@@ -82,7 +85,7 @@ public:
 
 	template<typename F>
 	ValueArg(x::string const& name, char assignCh, x::range<T>&& range, F&& fn):
-		Arg(name),
+		Value(name),
 		assignCh_{assignCh},
 		range_{range},
 		action_{std::forward<F>(fn)}
@@ -90,7 +93,7 @@ public:
 
 	template<typename F>
 	ValueArg(x::string const& name, char assignCh, F&& fn):
-		Arg(name),
+		Value(name),
 		assignCh_{assignCh},
 		range_{std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max()},
 		action_{std::forward<F>(fn)}
@@ -100,7 +103,7 @@ public:
 	{
 		try {
 			size_t ascPos = arg.pos_of(assignCh_);
-			if (Arg::pass(arg.subset(0, ascPos-1)) &&
+			if (Value::pass(arg.subset(0, ascPos-1)) &&
 				range_.contains(value_ = 
 					T(std::stod(arg.subset(ascPos+1))))) 
 			{
@@ -116,7 +119,7 @@ public:
 
 class ArgHandler
 {
-	x::vector<Arg*> args_;
+	x::vector<Value*> args_;
 public:
 	ArgHandler() {}
 
@@ -124,14 +127,14 @@ public:
 	{
 		for (size_t i = 1; i<argc; ++i) {
 			std::cout<<argv[i]<<std::endl;
-			for (Arg*& a : args_) {
+			for (Value*& a : args_) {
 				if (a->pass(x::string(argv[i])))
 					break;
 			}
 		}
 	}
 
-	void add(Arg* arg)
+	void add(Value* arg)
 	{
 		args_.push_back(arg);
 	}

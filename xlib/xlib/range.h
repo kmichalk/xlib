@@ -12,6 +12,7 @@ struct two
 {
 	T1 a;
 	T2 b;
+
 	two(T1 const& a, T2 const& b):
 		a{a}, b{b}
 	{

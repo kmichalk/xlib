@@ -1,7 +1,6 @@
 //#pragma once
-#ifndef XARR_H
-#define XARR_H
-//#include "stdafx.h"
+#ifndef VECTOR_H
+#define VECTOR_H
 
 //#include "random_engine_.h"
 #include <vector>
@@ -9,18 +8,13 @@
 #include <iostream>
 #include <string>
 #include "more_type_traits.h"
+#include "simple.h"
 //#include "xrnd.h"
-#include <map>
 
 #define DEBUG 0
 
 #define enable_if typename std::enable_if_t
 #define decay typename std::decay_t
-
-template <typename T>
-__forceinline int sgn(T val) {
-	return (T(0) < val) - (val < T(0));
-}
 
 namespace x
 {
@@ -103,7 +97,7 @@ protected:
 	__forceinline T* alloc_(size_t newSize)
 	{
 		reserved_ = newSize;
-		return new T[newSize];
+		return new T[newSize]{};
 	}
 
 	void realloc_(size_t newSize)
@@ -533,6 +527,7 @@ public:
 		return const_loop_iterator(*this, size_);
 	}
 
+
 	vector_():
 		content_(alloc_(default_alloc_)), size_(0)
 	{
@@ -550,7 +545,7 @@ public:
 		copy_(content_, arr, size_);
 	}
 
-	template<size_t size, typename Y=T, typename = enable_if<!std::is_same<decay<Y>, char>::value>>
+	template<size_t size, typename Y = T, typename = enable_if<!std::is_same<decay<Y>, char>::value>>
 	vector_(const T(&arr)[size], size_t extra = 0):
 		content_(alloc_(size + extra)),
 		size_(size)
@@ -564,7 +559,8 @@ public:
 		content_{alloc_(strlen(arr)+1)},
 		size_{reserved_}
 	{
-		copy_(content_, arr, size_);
+		copy_(content_, arr, reserved_);
+		cout<<"arr con"<<" "<<content_<<endl;
 	}
 
 	vector_(std::initializer_list<T> arr):
@@ -590,8 +586,10 @@ public:
 		content_{alloc_(other.size_ ? other.size_ : default_alloc_)},
 		size_{other.size_}
 	{
-		//std::cout<<"copy\n";
+		std::cout<<"copy\n";
+		cout<<other.content_<<" "<<other.size_<<endl;
 		if (size_) copy_(content_, other.content_, size_);
+		cout<<content_<<endl;
 	}
 
 	explicit vector_(const std::vector<T>& vec):
@@ -601,13 +599,13 @@ public:
 		if (size_) copy_(content_, vec.data(), size_);
 	}
 
-	template<typename Y = T, typename  = enable_if<std::is_same<decay<Y>, char>::value>>
-	explicit vector_(const std::string&> str):
+	/*template<typename Y = T, typename  = enable_if<std::is_same<decay<Y>, char>::value>>
+	explicit vector_(const std::string& str):
 		content_(alloc_(str.size()+1)),
 		size_(str.size()+1)
 	{
 		if (size_) copy_(content_, str.data(), size_);
-	}
+	}*/
 
 	/*template<typename I>
 	vector_(enable_if<std::is_fundamental<I>::value,
@@ -709,7 +707,7 @@ public:
 
 	template<bool ptr_deref = false, typename Y = T>
 	enable_if<std::is_trivial<Y>::value && !ptr_deref,
-		bool> identical(const vector_<T>& other)
+		bool> identical(const vector_<T>& other) const
 	{
 		if (size_ == other.size_)
 			return memcmp(content_, other.content_, size_) == 0;
@@ -718,7 +716,7 @@ public:
 
 	template<bool ptr_deref = false, typename Y = T>
 	enable_if<!std::is_trivial<Y>::value || ptr_deref,
-		bool> identical(const vector_<T>& other)
+		bool> identical(const vector_<T>& other) const
 	{
 		if (size_ != other.size_)
 			return false;
@@ -732,7 +730,7 @@ public:
 		return true;
 	}
 
-	__forceinline bool operator==(const vector_<T>& other)
+	__forceinline bool operator==(const vector_<T>& other) const
 	{
 		return identical<false>(other);
 	}

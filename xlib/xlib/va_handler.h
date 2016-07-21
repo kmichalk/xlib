@@ -55,11 +55,11 @@ namespace x
 		class Eraser_ {};
 
 		template<typename T>
-		class Concrete_: public Eraser_
+		class FnConcrete_: public Eraser_
 		{
 		public:
 			T value;
-			Concrete_(T const& value):
+			FnConcrete_(T const& value):
 				value{value}
 			{
 			}
@@ -75,7 +75,7 @@ namespace x
 
 	public:
 		va_handler(A const&... args):
-			args_{(new Concrete_<A>{args}) ...}
+			args_{(new FnConcrete_<A>{args}) ...}
 		{
 		}
 
@@ -84,7 +84,7 @@ namespace x
 		{
 			static_assert(i <= size,
 				"Index exceeds parameter pack size.");
-			return static_cast<Concrete_<ArgT_<i>>*>(args_[i-1])->value;
+			return static_cast<FnConcrete_<ArgT_<i>>*>(args_[i-1])->value;
 		}
 
 		~va_handler()

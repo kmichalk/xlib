@@ -131,6 +131,10 @@ public:
 		T l = len();
 		return crd<T>(-y/l, x/l);
 	}
+	crd<T>& normalize()
+	{
+		operator/=(len());
+	}
 	T angle() const
 	{
 		T ang = atan2(y, x);

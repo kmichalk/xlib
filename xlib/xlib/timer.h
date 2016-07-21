@@ -83,7 +83,7 @@ public:
 
 	void tic()
 	{
-		time_ = 0;
+		//time_ = 0;
 		from_ = std::chrono::duration_cast<Unit>(
 			std::chrono::system_clock::now().time_since_epoch());
 	}

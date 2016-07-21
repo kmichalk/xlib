@@ -6,72 +6,74 @@
 
 #define enable_if std::enable_if_t
 
-namespace x {
-
-template<typename T>
-class _UniqueNum;
-
-class _TypeEnum
+namespace x
 {
-public:
-	static unsigned short last_;
-	const unsigned short num_;
+	using num_t = unsigned short;
 
-	_TypeEnum() = delete;
+	template<typename T>
+	class _UniqueNum;
 
-public:
-	explicit _TypeEnum(unsigned short num) : num_{num} {}
-
-	__forceinline unsigned short num() const
+	class _TypeEnum
 	{
-		return num_;
-	}
+	public:
+		static num_t last_;
+		const num_t num_;
+
+		_TypeEnum() = delete;
+
+	public:
+		explicit _TypeEnum(num_t num): num_{num} {}
+
+		__forceinline num_t num() const
+		{
+			return num_;
+		}
 #pragma region friends
-	template<typename>
-	friend class _UniqueNum;
+		template<typename>
+		friend class _UniqueNum;
 
-	template<typename T>
-	friend __forceinline enable_if<std::is_base_of<x::_TypeEnum, T>::value,
-		unsigned short> declnum(T&);
-	template<typename T>
-	friend __forceinline enable_if<!std::is_base_of<x::_TypeEnum, T>::value,
-		unsigned short> declnum(T&);
-	template<typename T>
-	friend __forceinline enable_if<std::is_base_of<x::_TypeEnum, T>::value,
-		unsigned short> declnum(T*);
-	template<typename T>
-	friend __forceinline enable_if<!std::is_base_of<x::_TypeEnum, T>::value,
-		unsigned short> declnum(T*);
+		template<typename T>
+		friend __forceinline enable_if<std::is_base_of<x::_TypeEnum, T>::value,
+			num_t> declnum(T&);
+		template<typename T>
+		friend __forceinline enable_if<!std::is_base_of<x::_TypeEnum, T>::value,
+			num_t> declnum(T&);
+		template<typename T>
+		friend __forceinline enable_if<std::is_base_of<x::_TypeEnum, T>::value,
+			num_t> declnum(T*);
+		template<typename T>
+		friend __forceinline enable_if<!std::is_base_of<x::_TypeEnum, T>::value,
+			num_t> declnum(T*);
 #pragma endregion
-};
+	};
 
-template<typename T>
-class _UniqueNum final
-{
-	static const unsigned short typenum_;
-	static bool used_;
-
-	_UniqueNum() = delete;
-	_UniqueNum(_UniqueNum<T> const&) = delete;
-	_UniqueNum<T>& operator=(_UniqueNum<T> const&) = delete;
-
-public:
-	static unsigned short num()
+	template<typename T>
+	class _UniqueNum final
 	{
-		return typenum_;
-	}
-};
+		static const num_t typenum_;
+		static bool used_;
 
-unsigned short _TypeEnum::last_ = 0;
+		_UniqueNum() = delete;
+		_UniqueNum(_UniqueNum<T> const&) = delete;
+		_UniqueNum<T>& operator=(_UniqueNum<T> const&) = delete;
 
-template<typename T>
-const unsigned short _UniqueNum<T>::typenum_ = ++_TypeEnum::last_;
+	public:
+		static num_t num()
+		{
+			return typenum_;
+		}
+	};
 
-template<typename T>
-bool _UniqueNum<T>::used_ = false;
+	num_t _TypeEnum::last_ = 0;
 
-template<typename T>
-using UniqueNum = _UniqueNum<T>;
+	template<typename T>
+	const num_t _UniqueNum<T>::typenum_ = ++_TypeEnum::last_;
+
+	template<typename T>
+	bool _UniqueNum<T>::used_ = false;
+
+	template<typename T>
+	using UniqueNum = _UniqueNum<T>;
 
 }
 
@@ -79,78 +81,79 @@ using UniqueNum = _UniqueNum<T>;
 #define __typenum_2(__empty, T) x::_UniqueNum<T>::num()
 #define __typenum_1(__empty) _TypeEnum{__typenum_2(__empty,std::remove_pointer_t<decltype(this)>)}
 
-namespace x {
-template<typename T>
-__forceinline enable_if<std::is_base_of<x::_TypeEnum, T>::value,
-	unsigned short> declnum(T& obj)
+namespace x
 {
-	return obj.num();
-}
+	template<typename T>
+	__forceinline enable_if<std::is_base_of<x::_TypeEnum, T>::value,
+		num_t> declnum(T& obj)
+	{
+		return obj.num();
+	}
 
-template<typename T>
-__forceinline enable_if<!std::is_base_of<x::_TypeEnum, T>::value,
-	unsigned short> declnum(T& obj)
-{
-	return _UniqueNum<T>::num();
-}
+	template<typename T>
+	__forceinline enable_if<!std::is_base_of<x::_TypeEnum, T>::value,
+		num_t> declnum(T& obj)
+	{
+		return _UniqueNum<T>::num();
+	}
 
-template<typename T>
-__forceinline enable_if<std::is_base_of<x::_TypeEnum, T>::value,
-	unsigned short> declnum(T* obj)
-{
-	return obj->num();
-}
+	template<typename T>
+	__forceinline enable_if<std::is_base_of<x::_TypeEnum, T>::value,
+		num_t> declnum(T* obj)
+	{
+		return obj->num();
+	}
 
-template<typename T>
-__forceinline enable_if<!std::is_base_of<x::_TypeEnum, T>::value,
-	unsigned short> declnum(T* obj)
-{
-	return _UniqueNum<T>::num();
-}
+	template<typename T>
+	__forceinline enable_if<!std::is_base_of<x::_TypeEnum, T>::value,
+		num_t> declnum(T* obj)
+	{
+		return _UniqueNum<T>::num();
+	}
 
-template<typename T, typename Y>
-enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
-	T> typenum_cast(Y* ptr)
-{
-	return ptr->num()==typenum(std::remove_pointer_t<T>) ?
-		static_cast<T>(ptr) :
-		nullptr;
-}
+	template<typename T, typename Y>
+	enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
+		T> typenum_cast(Y* ptr)
+	{
+		return ptr->num()==typenum(std::remove_pointer_t<T>) ?
+			static_cast<T>(ptr) :
+			nullptr;
+	}
 
-template<typename T, typename Y>
-enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
-	T> typenum_cast(Y& ptr)
-{
-	if (ptr.num()==typenum(std::remove_reference_t<T>))
-		return static_cast<T>(ptr);
-	else
-		throw(std::bad_cast());
-}
+	template<typename T, typename Y>
+	enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
+		T> typenum_cast(Y& ptr)
+	{
+		if (ptr.num()==typenum(std::remove_reference_t<T>))
+			return static_cast<T>(ptr);
+		else
+			throw(std::bad_cast());
+	}
 
-template<typename T, typename Y>
-enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
-	T> typenum_cast(Y const* ptr)
-{
-	return ptr->num()==typenum(std::remove_const_t<std::remove_pointer_t<T>>) ?
-		static_cast<T>(ptr) :
-		nullptr;
-}
+	template<typename T, typename Y>
+	enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
+		T> typenum_cast(Y const* ptr)
+	{
+		return ptr->num()==typenum(std::remove_const_t<std::remove_pointer_t<T>>) ?
+			static_cast<T>(ptr) :
+			nullptr;
+	}
 
-template<typename T, typename Y>
-enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
-	T> typenum_cast(Y const& ptr)
-{
-	if (ptr.num()==typenum(std::remove_const_t<std::remove_reference_t<T>>))
-		return static_cast<T>(ptr);
-	else
-		throw(std::bad_cast());
-}
+	template<typename T, typename Y>
+	enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
+		T> typenum_cast(Y const& ptr)
+	{
+		if (ptr.num()==typenum(std::remove_const_t<std::remove_reference_t<T>>))
+			return static_cast<T>(ptr);
+		else
+			throw(std::bad_cast());
+	}
 
-template<typename T>
-struct _is_enumed
-{
-	static constexpr bool value = std::is_base_of<x::_TypeEnum, T>::value;
-};
+	template<typename T>
+	struct _is_enumed
+	{
+		static constexpr bool value = std::is_base_of<x::_TypeEnum, T>::value;
+	};
 
 }
 

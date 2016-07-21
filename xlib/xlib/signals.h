@@ -3,6 +3,7 @@
 #include "more_type_traits.h"
 #include "xvector.h"
 #include "_void.h"
+#include "fn.h"
 
 #define forceinline __forceinline
 
@@ -100,29 +101,36 @@ public:
 class _Signal {};
 
 template<typename... A>
-class Signal: public _Signal
+class Signal: public Callable<A...>
 {
-	x::vector_<_Slot<A...>*> slots_;
+	x::vector_<Callable<A...>*> slots_;
 
 public:
 	Signal() :
 		slots_(1)
-	{}
+	{
+	}
+
 	Signal(const Signal<A...>& other)
 	{
 		for (auto s = other.slots_.cbegin(),
 			cend = other.slots_.cend();
 			s!=cend; ++s)
-			slots_.push_back((*s)->virtual_copy_());
+			slots_.push_back((*s)->copy());
 	}
-	template<typename... T>
+
+	Signal(std::initializer_list<Callable<A...>*> slots):
+		slots_{slots}
+	{
+	}
+	/*template<typename... T>
 	Signal(T*... slots):
 		slots_{slots...}
 	{
 		static_assert(
 			all_true<std::is_base_of<_Slot<A...>, T>::value...>::value,
 			"At least one argument is not a function or member function pointer");
-	}
+	}*/
 
 	Signal<A...>& operator=(const Signal<A...>& other)
 	{
@@ -130,33 +138,43 @@ public:
 		for (auto s = other.slots_.cbegin(),
 			cend = other.slots_.cend();
 			s!=cend; ++s)
-			slots_.push_back((*s)->virtual_copy_());
+			slots_.push_back((*s)->copy());
 		return *this;
+	}
+
+	Callable<A...>* copy() const override
+	{
+		return new Signal<A...>{*this};
 	}
 
 	_void<_Signal> operator()(A... args)
 	{
-		for (auto&& s : slots_) (*s)(args...);
+		for (auto&& s : slots_) s->call(args...);
 		return _void<_Signal>{};
+	}
+
+	virtual void call(A... args) final override
+	{
+		for (auto&& s : slots_) s->call(args...);
 	}
 
 	template<typename T, typename R>
 	inline void attach(T* obj, R(T::*fn)(A...))
 	{
-		slots_.push_back(new Slot<T, R(A...)>(obj, fn));
+		slots_.push_back(new Fn<T, R(A...)>(obj, fn));
 	}
 	template<typename R>
 	inline void attach(R(*fn)(A...))
 	{
-		slots_.push_back(new Slot<R(A...)>(fn));
+		slots_.push_back(new Fn<R(A...)>(fn));
 	}
 	template<typename R>
-	inline void attach(Slot<R(A...)>* slot)
+	inline void attach(Fn<R(A...)>* slot)
 	{
 		slots_.push_back(slot);
 	}
 	template<typename T, typename R>
-	inline void attach(Slot<T, R(A...)>* slot)
+	inline void attach(Fn<T, R(A...)>* slot)
 	{
 		slots_.push_back(slot);
 	}
@@ -168,18 +186,28 @@ public:
 	template<typename T, typename R>
 	void detach(T* obj, R(T::*fn)(A...))
 	{
-		Slot<T, R(A...)> s(obj, fn);
+		Fn<T, R(A...)> s(obj, fn);
 		slots_.remove<x::vector_opt::PTR_DELETE, x::vector_opt::PTR_DEREF>(&s, 1);
 	}
 	template<typename R>
 	void detach(R(*fn)(A...))
 	{
-		Slot<R(A...)> s(obj, fn);
+		Fn<R(A...)> s(obj, fn);
 		slots_.remove<x::vector_opt::PTR_DELETE, x::vector_opt::PTR_DEREF>(&s, 1);
 	}
-	void detach()
+	void clear()
 	{
 		slots_.erase<x::vector_opt::PTR_DELETE>();
+	}
+
+	operator bool() const
+	{
+		return !slots_.empty();
+	}
+
+	bool empty() const
+	{
+		return slots_.empty();
 	}
 
 	~Signal()

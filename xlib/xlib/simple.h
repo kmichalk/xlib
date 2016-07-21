@@ -55,17 +55,61 @@ namespace x
 	}
 
 	template<typename T>
-	inline enable_if<std::is_floating_point<T>::value, 
+	inline enable_if<std::is_floating_point<T>::value,
 		T> mant(T val)
 	{
 		return val-int(val);
 	}
 
 	template<typename T, typename = enable_if<true>>
-	inline enable_if<std::is_integral<T>::value, 
+	inline enable_if<std::is_integral<T>::value,
 		double> mant(T val)
 	{
 		return 0;
+	}
+
+	template<typename R = double, typename... T>
+	std::conditional_t<every_is<int, T...>::value, int, double> va_sum(T&&... args)
+	{
+		double result = 0;
+		expand((result += args)...);
+		return result;
+	}
+
+	template<typename R = double, typename... T>
+	std::conditional_t<every_is<int, T...>::value, int, double> va_mult(T... args)
+	{
+		double result = 1;
+		expand((result *= args)...);
+		return result;
+	}
+	
+	template<typename T>
+	inline enable_if<std::is_floating_point<T>::value,
+		T> is_zero(T val)
+	{
+		return val > -0.00000001 && val < 0.00000001;
+	}
+
+	template<typename T, typename = enable_if<true>>
+	inline enable_if<std::is_integral<T>::value,
+		double> is_zero(T val)
+	{
+		return val==0;
+	}
+
+	template<typename T>
+	inline enable_if<std::is_floating_point<T>::value,
+		T> not_zero(T val)
+	{
+		return val < -0.00000001 || val > 0.00000001;
+	}
+
+	template<typename T, typename = enable_if<true>>
+	inline enable_if<std::is_integral<T>::value,
+		double> not_zero(T val)
+	{
+		return val;
 	}
 }
 
