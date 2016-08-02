@@ -7,7 +7,7 @@
 namespace x
 {
 
-template<typename T1, typename T2>
+template<typename T1, typename T2 = T1>
 struct two
 {
 	T1 a;
@@ -65,7 +65,7 @@ public:
 	template<typename Y>
 	bool contains(Y const& value) const
 	{
-		return (value>=a_) & (value<=b_);
+		return (value>=a_) && (value<=b_);
 	}
 
 	range<T> operator+(range<T> const& other) const

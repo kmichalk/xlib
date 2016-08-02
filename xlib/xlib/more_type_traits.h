@@ -7,15 +7,25 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
-struct __True
+struct _True
 {
-	__True() {}
+	_True() {}
 };
-struct __False
+struct _False
 {
-	__False(__True) {}
+	_False(_True) {}
 };
 
+//////////////////////////////////////////////////////////////////////////////
+
+namespace x
+{
+	template<typename T, typename Y>
+	constexpr bool same = false;
+
+	template<typename T>
+	constexpr bool same<T, T> = true;
+}
 //////////////////////////////////////////////////////////////////////////////
 
 #define ADVANCED_MEMBER_TEST(TestName, R_template, member, parameters, ...) \
@@ -25,13 +35,13 @@ class TestName\
 protected:\
 	template<typename Y_, R_template, __VA_ARGS__>\
 	using MemberType_ = typename std::conditional<std::is_class<T_>::value,\
-		R_template(Y_::*)(__VA_ARGS__) parameters, __True>::type;\
-	template<typename Y_> static __False test(__False);\
+		R_template(Y_::*)(__VA_ARGS__) parameters, _True>::type;\
+	template<typename Y_> static _False test(_False);\
 	template<typename Y_> static typename std::conditional<std::is_class<T_>::value,\
-		decltype(&Y_::member), __False>::type test(__True);\
+		decltype(&Y_::member), _False>::type test(_True);\
 public:\
 	static constexpr bool value = \
-		std::is_same<decltype(test<T_>(__True())),\
+		std::is_same<decltype(test<T_>(_True())),\
 		MemberType_<T_,R_template,__VA_ARGS__>>::value;\
 };
 
@@ -44,13 +54,13 @@ class TestName\
 private:\
 	template<typename Y_>\
 	using MemberType_ = typename std::conditional<std::is_class<T_>::value,\
-		ReturnType(Y_::*)##arguments parameters, __True>::type;\
-	template<typename Y_> static __False test(__False);\
+		ReturnType(Y_::*)##arguments parameters, _True>::type;\
+	template<typename Y_> static _False test(_False);\
 	template<typename Y_> static typename std::conditional<std::is_class<T_>::value,\
-		decltype(&Y_::member), __False>::type test(__True);\
+		decltype(&Y_::member), _False>::type test(_True);\
 public:\
 	static constexpr bool value = \
-		std::is_same<decltype(test<T_>(__True())), MemberType_<T_>>::value;\
+		std::is_same<decltype(test<T_>(_True())), MemberType_<T_>>::value;\
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -60,12 +70,12 @@ template<typename T>\
 class TestName\
 {\
 private:\
-	template <typename Y> static __False test(__False);\
+	template <typename Y> static _False test(_False);\
 	template <typename Y> static typename std::conditional<std::is_class<T>::value,\
-		decltype(&Y::member), __False>::type test(__True);\
+		decltype(&Y::member), _False>::type test(_True);\
 public:\
 	static constexpr bool value = \
-		!std::is_same<decltype(test<T>(__True())), __False>::value;\
+		!std::is_same<decltype(test<T>(_True())), _False>::value;\
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -155,7 +165,7 @@ struct is_any_of<T, Y_>
 template<typename T, typename... Y>
 using select_any = typename
 std::conditional<is_any_of<T, Y...>::value,
-	T, __False>::type;
+	T, _False>::type;
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -504,11 +514,11 @@ struct same_packs
 
 //////////////////////////////////////////////////////////////////////////////
 
-template<typename T, typename R, typename... A>
-std::tuple<A...> args_to_tuple(R(T::*)(A...))
-{
-	return std::tuple<A...>;
-}
+//template<typename T, typename R, typename... A>
+//std::tuple<A...> args_to_tuple(R(T::*)(A...))
+//{
+//	return std::tuple<A...>;
+//}
 
 //////////////////////////////////////////////////////////////////////////////
 

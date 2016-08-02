@@ -11,7 +11,9 @@
 #include "clarg.h"
 #include "list.h"
 #include "realcall.h"
+#include "xrnd.h"
 #include "auto_cast.h"
+#include "crd_cast.h"
 #include <fstream>
 //#include "logic.h"
 
@@ -216,8 +218,59 @@ public:
 using namespace std;
 using namespace x;
 
+using Point = crd<double>;
+using Vector = crd<double>;
+
+
+void d1() {}
+void d2(int&){}
+
+
+template<typename T>
+class crd3
+{
+public:
+	T x;
+	T y;
+	T z;
+	void f() {}
+	crd3(T x, T y, T z):x{x},y{y},z{z}{}
+};
+template<typename T>
+class crd2
+{
+public:
+	T x, y;
+};
+
+template<typename T>
+struct crdd { int z; };
+
+
 int main(int argc, char* argv[])
 {
+	crd<double> p{-9,0};
+	sf::Vector3<int> v3{12,12,12};
+	cout<<crd_cast(crd3<int>)(v3).z;
+
+	cout<<crd_cast(sf::Vector2f)(p).x;
+	cout<<crd_cast(crd<double>)(sf::Vector2i{0,0}).y;
+
+
+	return 0;
+	
+	tic();
+	repeat(1000000) {
+	}
+	cout<<toc()<<endl;
+
+	tic();
+	repeat(1000000) {
+		d1();
+	}
+	cout<<toc()<<endl;
+
+	return 0;
 	Application app;
 	ControlledObject elem;
 	elem.shape.setPosition(100, 100);

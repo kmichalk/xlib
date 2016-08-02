@@ -257,7 +257,7 @@ public:
 	}
 	virtual bool operator==(Event const& other)
 	{
-		return num_==other.num_;
+		return num==other.num;
 	}
 
 	template<typename EventType>

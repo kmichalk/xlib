@@ -11,11 +11,13 @@
 //#define decay typename std::decay_t
 namespace x {
 
+#define _CurrentEngine _RandomEngine<T,Distribution,Engine>
+
 template<
 	typename T = int,
 	typename Distribution = std::normal_distribution<>,
 	typename Engine = std::mt19937>
-class random_engine_
+class _RandomEngine
 {
 	template<typename Y = T>
 	static forceinline constexpr enable_if<std::is_integral<Y>::value,
@@ -66,10 +68,13 @@ template<
 	typename Engine = std::mt19937>
 	T random(T r1, T r2)
 {
-	if (random_engine_<T, Distribution, Engine>::always_seed_)
-		seed();
-	return T(fmod(long double(random_engine_<T, Distribution, Engine>::engine_()),
-		long double(r2 - r1 + random_engine_<T, Distribution, Engine>::dT_()))) + r1;
+	if (_CurrentEngine::always_seed_)
+		seed<T, Distribution, Engine>();
+	return T((long double)_CurrentEngine::engine_() / (long double)_CurrentEngine::engine_.max() *
+		(r2 - r1 + _CurrentEngine::dT_())) + r1;
+
+	/*return T(fmod(long double(_CurrentEngine::engine_()),
+		long double(r2 - r1 + _CurrentEngine::dT_()))) + r1;*/
 }
 
 template<
@@ -78,9 +83,9 @@ template<
 	typename Engine = std::mt19937>
 	T random()
 {
-	if (random_engine_<T, Distribution, Engine>::always_seed_)
-		random_engine_<T, Distribution, Engine>::seed();
-	return T(random_engine_<T, Distribution, Engine>::engine_());
+	if (_CurrentEngine::always_seed_)
+		seed<T, Distribution, Engine>();
+	return T(_CurrentEngine::engine_());
 }
 
 template<
@@ -89,9 +94,9 @@ template<
 	typename Engine = std::mt19937>
 	void seed()
 {
-	random_engine_<T, Distribution, Engine>::engine_.seed(
+	_CurrentEngine::engine_.seed(
 		timer<std::chrono::microseconds>::epoch()+
-		++random_engine_<T, Distribution, Engine>::rand_helper_);
+		++_CurrentEngine::rand_helper_);
 }
 
 template<
@@ -100,7 +105,7 @@ template<
 	typename Engine = std::mt19937>
 	void always_seed(bool value)
 {
-	random_engine_<T, Distribution, Engine>::always_seed_ = value;
+	_CurrentEngine::always_seed_ = value;
 }
 
 template<
@@ -113,17 +118,17 @@ template<
 }
 
 template<typename T, typename Distribution, typename Engine>
-long long int random_engine_<T, Distribution, Engine>::rand_helper_ =
+long long int _CurrentEngine::rand_helper_ =
 	x::timer<std::chrono::seconds>::epoch();
 
 template<typename T, typename Distribution, typename Engine>
-Engine random_engine_<T, Distribution, Engine>::engine_ = Engine();
+Engine _CurrentEngine::engine_ = Engine();
 
 template<typename T, typename Distribution, typename Engine>
-Distribution random_engine_<T, Distribution, Engine>::dist_ = Distribution();
+Distribution _CurrentEngine::dist_ = Distribution();
 
 template<typename T, typename Distribution, typename Engine>
-bool random_engine_<T, Distribution, Engine>::always_seed_ = true;
+bool _CurrentEngine::always_seed_ = true;
 
 };
 

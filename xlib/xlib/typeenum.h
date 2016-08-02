@@ -16,18 +16,22 @@ namespace x
 	class _TypeEnum
 	{
 	public:
-		static num_t last_;
-		const num_t num_;
+		static __forceinline num_t last() 
+		{
+			static num_t last_ = 0;
+			return ++last_;
+		}
+		const num_t num;
 
 		_TypeEnum() = delete;
 
 	public:
-		explicit _TypeEnum(num_t num): num_{num} {}
+		explicit _TypeEnum(num_t num): num{num} {}
 
-		__forceinline num_t num() const
+		/*__forceinline num_t num() const
 		{
 			return num_;
-		}
+		}*/
 #pragma region friends
 		template<typename>
 		friend class _UniqueNum;
@@ -51,7 +55,7 @@ namespace x
 	class _UniqueNum final
 	{
 		static const num_t typenum_;
-		static bool used_;
+		//static bool used_;
 
 		_UniqueNum() = delete;
 		_UniqueNum(_UniqueNum<T> const&) = delete;
@@ -64,22 +68,22 @@ namespace x
 		}
 	};
 
-	num_t _TypeEnum::last_ = 0;
+	//num_t _TypeEnum::last_ = 0;
 
 	template<typename T>
-	const num_t _UniqueNum<T>::typenum_ = ++_TypeEnum::last_;
+	const num_t _UniqueNum<T>::typenum_ = _TypeEnum::last();
 
-	template<typename T>
-	bool _UniqueNum<T>::used_ = false;
+	/*template<typename T>
+	bool _UniqueNum<T>::used_ = false;*/
 
 	template<typename T>
 	using UniqueNum = _UniqueNum<T>;
 
 }
 
-#define typenum(...) CAT(__typenum_, NARGS(0, __VA_ARGS__))(0, __VA_ARGS__)
-#define __typenum_2(__empty, T) x::_UniqueNum<T>::num()
-#define __typenum_1(__empty) _TypeEnum{__typenum_2(__empty,std::remove_pointer_t<decltype(this)>)}
+#define typenum(...) CAT(__typenum_, NARGS(0, __VA_ARGS__))(__VA_ARGS__)
+#define __typenum_2(T) x::_UniqueNum<T>::num()
+#define __typenum_1() _TypeEnum{__typenum_2(std::remove_pointer_t<decltype(this)>)}
 
 namespace x
 {
@@ -87,7 +91,7 @@ namespace x
 	__forceinline enable_if<std::is_base_of<x::_TypeEnum, T>::value,
 		num_t> declnum(T& obj)
 	{
-		return obj.num();
+		return obj.num;
 	}
 
 	template<typename T>
@@ -101,7 +105,7 @@ namespace x
 	__forceinline enable_if<std::is_base_of<x::_TypeEnum, T>::value,
 		num_t> declnum(T* obj)
 	{
-		return obj->num();
+		return obj->num;
 	}
 
 	template<typename T>
@@ -115,7 +119,7 @@ namespace x
 	enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
 		T> typenum_cast(Y* ptr)
 	{
-		return ptr->num()==typenum(std::remove_pointer_t<T>) ?
+		return ptr->num==typenum(std::remove_pointer_t<T>) ?
 			static_cast<T>(ptr) :
 			nullptr;
 	}
@@ -124,7 +128,7 @@ namespace x
 	enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
 		T> typenum_cast(Y& ptr)
 	{
-		if (ptr.num()==typenum(std::remove_reference_t<T>))
+		if (ptr.num==typenum(std::remove_reference_t<T>))
 			return static_cast<T>(ptr);
 		else
 			throw(std::bad_cast());
@@ -134,7 +138,7 @@ namespace x
 	enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
 		T> typenum_cast(Y const* ptr)
 	{
-		return ptr->num()==typenum(std::remove_const_t<std::remove_pointer_t<T>>) ?
+		return ptr->num==typenum(std::remove_const_t<std::remove_pointer_t<T>>) ?
 			static_cast<T>(ptr) :
 			nullptr;
 	}
@@ -143,7 +147,7 @@ namespace x
 	enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
 		T> typenum_cast(Y const& ptr)
 	{
-		if (ptr.num()==typenum(std::remove_const_t<std::remove_reference_t<T>>))
+		if (ptr.num==typenum(std::remove_const_t<std::remove_reference_t<T>>))
 			return static_cast<T>(ptr);
 		else
 			throw(std::bad_cast());

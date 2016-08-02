@@ -2,6 +2,7 @@
 #define SIMPLE_H
 
 #include "more_type_traits.h"
+#include "range.h"
 
 #undef min
 #undef max
@@ -13,13 +14,13 @@ namespace x
 	template<typename T1, typename T2>
 	inline auto min(T1&& n1, T2&& n2)
 	{
-		return n1 > n2 ? n1 : n2;
+		return n1 < n2 ? n1 : n2;
 	}
 
 	template<typename T1, typename T2>
 	inline auto max(T1&& n1, T2&& n2)
 	{
-		return n1 < n2 ? n1 : n2;
+		return n1 > n2 ? n1 : n2;
 	}
 
 	template<typename T1, typename T2 = int>
@@ -110,6 +111,73 @@ namespace x
 		double> not_zero(T val)
 	{
 		return val;
+	}
+
+	template<typename T>
+	two<T> solve_eq(T a, T b, T c)
+	{
+		auto delta = sqrt(b*b-4*a*c);
+		return{(-b-delta)/(2*a),(-b+delta)/(2*a)};
+	}
+
+	/*enum SolveMode{ NORMAL, ENABLE_1, THROW};
+
+	template<typename T, SolveMode mode = NORMAL>
+	enable_if<mode==NORMAL, 
+		two<T>> solve_eq(T a, T b, T c)
+	{
+		auto delta = sqrt(b*b-4*a*c);
+		return{(-b-delta)/(2*a),(-b+delta)/(2*a)};
+	}
+
+	template<typename T, SolveMode mode = NORMAL>
+	enable_if<mode==ENABLE_1,
+		two<T>> solve_eq(T a, T b, T c)
+	{
+		auto delta = sqrt(b*b-4*a*c);
+		return{
+			(-b-delta)/(2*a),
+			delta ? (-b+delta)/(2*a) : nan()};
+	}
+
+	template<typename T, SolveMode mode = NORMAL>
+	enable_if<mode==THROW,
+		two<T>> solve_eq2(T a, T b, T c)
+	{
+		auto delta = b*b-4*a*c;
+		if (delta<0) throw 0;
+		delta = sqrt(delta);
+		return{(-b-delta)/(2*a),(-b+delta)/(2*a)};
+	}*/
+
+	template<typename T>
+	__forceinline auto pow2(T value)
+	{
+		return value*value;
+	}
+
+	template<typename T>
+	__forceinline auto pow3(T value)
+	{
+		return value*value*value;
+	}
+
+	template<typename T>
+	__forceinline bool is_nan(T value)
+	{
+		return value!=value;
+	}
+
+	template<typename T>
+	__forceinline auto to_deg(T value)
+	{
+		return value/PI*180.0;
+	}
+
+	template<typename T>
+	__forceinline auto to_rad(T value)
+	{
+		return value*PI/180.0;
 	}
 }
 

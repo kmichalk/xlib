@@ -88,7 +88,7 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Custom</Optimization>
+      <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>D:\VSProjects\SFML-2.3.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -163,9 +163,11 @@
     <ClInclude Include="auto_cast.h" />
     <ClInclude Include="clarg.h" />
     <ClInclude Include="crd.h" />
+    <ClInclude Include="crd_cast.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="fn.h" />
     <ClInclude Include="fn_helper.h" />
+    <ClInclude Include="geom.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="logic.h" />
     <ClInclude Include="mouse.h" />

@@ -2,6 +2,7 @@
 
 #include "more_type_traits.h"
 #include <cmath>
+#include <ostream>
 
 #define conditional typename std::conditional_t
 #define is_real_type(type) std::is_floating_point<type>::value
@@ -45,17 +46,32 @@ public:
 
 	crd() :
 		x{0}, y{0}
-	{}
+	{
+	}
+
 	crd(T x, T y) :
 		x{x}, y{y}
-	{}
+	{
+	}
+
 	crd(const crd<T>& other) :
 		x{other.x}, y{other.y}
-	{}
+	{
+	}
+
+	static crd<T> versor(T angle)
+	{
+		return{cos(angle), sin(angle)};
+	}
 
 	T len() const
 	{
 		return sqrt(x*x+y*y);
+	}
+
+	T len2() const
+	{
+		return x*x+y*y;
 	}
 
 	T dist(const crd<T>& other) const
@@ -134,16 +150,43 @@ public:
 	crd<T>& normalize()
 	{
 		operator/=(len());
+		return *this;
+	}
+	crd<T>& setLen(T l)
+	{
+		operator/=(len()/l);
+		return *this;
 	}
 	T angle() const
 	{
 		T ang = atan2(y, x);
 		if (ang < 0) return ang+(ang < 0)*2*PI;
 	}
+
+	crd<T> inverse() const
+	{
+		return (*this)/len2();
+	}
+
+	T crossVal(crd<T> const& other) const
+	{
+		return x*other.y - y*other.x;
+	}
+
+	crd<T> crossVal(T z) const
+	{
+		return{y*z,-x*z};
+	}
+
 	inline void zero()
 	{
 		x = 0; 
 		y = 0;
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, crd<T> const& c)
+	{
+		return os<<'('<<c.x<<','<<c.y<<')';
 	}
 
 };

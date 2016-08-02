@@ -113,5 +113,11 @@
     <ClInclude Include="realcall.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="geom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="crd_cast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
