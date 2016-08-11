@@ -77,19 +77,30 @@ public:
 
 	crd<T> normal() const
 	{
-		return crd<T>{a, 1}.dir();
+		return crd<T>{-a, 1}.dir();
 	}
-
 
 	crd<T> tangent() const
 	{
 		return crd<T>{};
 	}
 
+	T relation(crd<T> const& c) const
+	{
+		//cout<<a<<" "<<b<<endl;
+		return c.y-a*c.x-b;
+	}
+
 	template<typename Y>
 	double dist(crd<Y> const& p) const
 	{
 		return abs(a*p.x-p.y+b)/sqrt(a*a+1);
+	}
+
+	template<typename Y>
+	double dist2(crd<Y> const& p) const
+	{
+		return x::pow2(a*p.x-p.y+b)/(a*a+1);
 	}
 
 	~line()

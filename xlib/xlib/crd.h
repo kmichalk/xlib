@@ -1,13 +1,12 @@
 #pragma once
 
 #include "more_type_traits.h"
-#include <cmath>
+#include "simple.h"
 #include <ostream>
 
 #define conditional typename std::conditional_t
 #define is_real_type(type) std::is_floating_point<type>::value
 #define is_signed(type) !std::is_unsigned<type>::value
-#define PI 3.141592653589793
 
 template<typename T = double>
 class crd
@@ -160,7 +159,30 @@ public:
 	T angle() const
 	{
 		T ang = atan2(y, x);
-		if (ang < 0) return ang+(ang < 0)*2*PI;
+		return ang+(ang < 0)*2*PI;
+	}
+
+	crd<T>& rot90p()
+	{
+		T temp = x;
+		x = -y;
+		y = temp;
+		return *this;
+	}
+
+	crd<T>& rot90n()
+	{
+		T temp = -x;
+		x = y;
+		y = temp;
+		return *this;
+	}
+
+	crd<T>& reverse()
+	{
+		x = -x;
+		y = -y;
+		return *this;
 	}
 
 	crd<T> inverse() const
@@ -188,8 +210,37 @@ public:
 	{
 		return os<<'('<<c.x<<','<<c.y<<')';
 	}
-
 };
+
+template<typename T, typename Y>
+inline auto crossVal(crd<T> const& c1, crd<Y> const& c2)
+{
+	return c1.x*c2.y - c1.y*c2.x;
+}
+
+template<typename T, typename Y>
+inline auto multCrd(crd<T> const& c1, crd<Y> const& c2)
+{
+	return crd<decltype(T*Y)>{c1.x*c2.x, c1.y*c2.y};
+}
+
+template<typename T, typename Y>
+inline auto dot(crd<T> const& c1, crd<Y> const& c2)
+{
+	return c1.x*c2.x + c1.y*c2.y;
+}
+
+template<typename T>
+__forceinline auto hypot(crd<T> const& c)
+{
+	return hypot(c.x, c.y);
+}
+
+template<typename T, typename Y>
+inline auto triangleField(crd<T> const& c1, crd<Y> const& c2)
+{
+	return abs(crossVal(c1, c2)) / 2.0;
+}
 
 template<typename T>
 const crd<T> crd<T>::ZERO = {0,0};

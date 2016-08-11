@@ -35,9 +35,11 @@ class ThreadedTask : public Threaded
 #define __setProcess Threaded(&std::remove_pointer_t<decltype(this)>::process,this)
 
 class ThreadedProcess: public Threaded
-{
-	virtual void process() override;
+{	
+protected:
+	virtual void task() abstract override;
 	virtual void stop() override;
+	virtual void process() override;
 public:
 	ThreadedProcess();
 	virtual ~ThreadedProcess();

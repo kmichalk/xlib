@@ -8,10 +8,10 @@
 namespace x {
 ADVANCED_MEMBER_TEST(_has_size, typename R, size, const)
 
-template<typename T, size_t size_>
-__forceinline size_t size(T(&arr)[size_])
+template<typename T, size_t _size>
+__forceinline size_t size(T(&arr)[_size])
 {
-	return size_;
+	return _size;
 }
 
 template<typename T>

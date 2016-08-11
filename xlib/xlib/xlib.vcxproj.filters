@@ -21,6 +21,9 @@
     <ClCompile Include="threaded.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="fractions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="_void.h">
@@ -117,6 +120,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="crd_cast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="autolim.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ct_algorithm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fractions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

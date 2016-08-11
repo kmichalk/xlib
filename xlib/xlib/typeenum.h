@@ -116,7 +116,7 @@ namespace x
 	}
 
 	template<typename T, typename Y>
-	enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
+	inline enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
 		T> typenum_cast(Y* ptr)
 	{
 		return ptr->num==typenum(std::remove_pointer_t<T>) ?
@@ -125,7 +125,7 @@ namespace x
 	}
 
 	template<typename T, typename Y>
-	enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
+	inline enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
 		T> typenum_cast(Y& ptr)
 	{
 		if (ptr.num==typenum(std::remove_reference_t<T>))
@@ -135,7 +135,7 @@ namespace x
 	}
 
 	template<typename T, typename Y>
-	enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
+	inline enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
 		T> typenum_cast(Y const* ptr)
 	{
 		return ptr->num==typenum(std::remove_const_t<std::remove_pointer_t<T>>) ?
@@ -144,7 +144,7 @@ namespace x
 	}
 
 	template<typename T, typename Y>
-	enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
+	inline enable_if<std::is_base_of<x::_TypeEnum, Y>::value,
 		T> typenum_cast(Y const& ptr)
 	{
 		if (ptr.num==typenum(std::remove_const_t<std::remove_reference_t<T>>))

@@ -15,6 +15,7 @@
 #include "auto_cast.h"
 #include "crd_cast.h"
 #include <fstream>
+#include "geom.h"
 //#include "logic.h"
 
 using namespace std;
@@ -222,51 +223,137 @@ using Point = crd<double>;
 using Vector = crd<double>;
 
 
-void d1() {}
-void d2(int&){}
-
-
-template<typename T>
-class crd3
+double RelationPointLSegment(Point const& P, Point const& begin, Point const& end)
 {
-public:
-	T x;
-	T y;
-	T z;
-	void f() {}
-	crd3(T x, T y, T z):x{x},y{y},z{z}{}
-};
-template<typename T>
-class crd2
+	//cout<<"line "<<begin<<"  -  "<<end<<endl;
+	double slope = abs(end.y-begin.y)/(end.x-begin.x);
+	return (P.y - slope*P.x + slope*begin.x - begin.y) /
+		(1 + x::pow2(slope));
+}
+
+bool RectContainsPoint(Point vertArr[4], Point const & P)
 {
-public:
-	T x, y;
+	//cout<<P<<endl;
+	double field = 0;
+	for (int i = 0; i<4; ++i) {
+		field += triangleField(vertArr[i]-P, vertArr[(i+1)%4]-P);
+	}
+	return field <12.001;
+}
+
+bool RCP_2(Point vertArr[4], Point const & P)
+{
+	int in1 = 0, in2 = 0;
+	for (int i = 0; i<4; ++i) {
+		if (line<double>{vertArr[i], vertArr[(i+1)%4]}.relation(P) < 0) {
+			if (in2) return false;
+			(in1 ? in2 : in1) = i+1;
+		}
+	}
+	return in2-in1==1 || (in2==4 && in1==1);
+}
+
+bool RCP(Point const& S, double a, double b, double angle, Point const& P)
+{
+	Vector SP = P-S;
+	double angRel = norm_rf(SP.angle()-angle);
+	angRel = fmod(angRel, PI);
+	double dist2;
+	double angLim = atan2(b, a);
+
+	if (angRel < angLim || angRel > PI-angLim)
+		dist2 = pow2(a)*(1+pow2(tan(angRel)));
+	else 
+		dist2 = pow2(b)*(1+pow2(tan(PI/2.0-angRel)));
+
+	return dist2 > SP.len2();
+}
+
+struct S
+{
+	S(int) { cout<<"int"; }
+	S(double) { cout<<"double"; }
+	S(float) { cout<<"float"; }
 };
 
-template<typename T>
-struct crdd { int z; };
+
+template<int _num = 1, int _denom = 1>
+constexpr double _PI = (double)_num / (double)_denom * PI;
+
+#include "ct_algorithm.h"
+#include "autolim.h"
 
 
 int main(int argc, char* argv[])
 {
-	crd<double> p{-9,0};
-	sf::Vector3<int> v3{12,12,12};
-	cout<<crd_cast(crd3<int>)(v3).z;
-
-	cout<<crd_cast(sf::Vector2f)(p).x;
-	cout<<crd_cast(crd<double>)(sf::Vector2i{0,0}).y;
+	sf::RenderWindow window{sf::VideoMode{1000,1000},"w"};
+	S s{5.0f};
+	Point vertArr[4]{{2,2},{3,8},{7,4},{4,1}};
 
 
-	return 0;
-	
+	/*double p;
 	tic();
-	repeat(1000000) {
+	repeat(10000000000) {
+		tan(100);
+	}
+	cout<<toc()<<endl; 
+	tic();
+	repeat(10000000) {
+		p = PI/7.0;
+	}
+	cout<<toc()<<endl;
+*/
+	//return 0;
+	/*tic();
+	for (double i = 0; i<10; i += 0.003) {
+		for (double j = 0; j<10; j += 0.003) {
+			RectContainsPoint(vertArr, {i,j});
+		}
 	}
 	cout<<toc()<<endl;
 
 	tic();
-	repeat(1000000) {
-		d1();
+	for (double i = 0; i<10; i += 0.003) {
+		for (double j = 0; j<10; j += 0.003) {
+			RCP_2(vertArr, {i,j});
+		}
+	}
+	cout<<toc()<<endl;*/
+
+	for (double i=0;i<10;i+=0.05){
+		for (double j = 0; j<10; j += 0.05) {
+			Point P{i,j};
+			sf::CircleShape c{1};
+			c.setPosition(P.x*100, P.y*-100+1000);
+			if (RCP_2(vertArr,P)) {
+			//if (RCP({5,3}, 1, 2, 3, P)) {
+				c.setFillColor(sf::Color::Red);
+			}
+			else {
+				c.setFillColor({100,100,100});
+			}
+			window.draw(c);
+			//window.display();
+		}
+	}
+	window.display();
+	system("pause");
+	return 0;
+	tic();
+	repeat(10000000) {
+
+	}
+	cout<<toc()<<endl;
+
+	tic();
+	repeat(10000000) {
+		
+	}
+	cout<<toc()<<endl;
+	
+	tic();
+	repeat(10000000) {
+
 	}
 	cout<<toc()<<endl;
 

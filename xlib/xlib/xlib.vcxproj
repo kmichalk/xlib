@@ -88,7 +88,7 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
+      <Optimization>Custom</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>D:\VSProjects\SFML-2.3.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -156,17 +156,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="fractions.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="threaded.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="autolim.h" />
     <ClInclude Include="auto_cast.h" />
     <ClInclude Include="clarg.h" />
     <ClInclude Include="crd.h" />
     <ClInclude Include="crd_cast.h" />
+    <ClInclude Include="ct_algorithm.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="fn.h" />
     <ClInclude Include="fn_helper.h" />
+    <ClInclude Include="fractions.h" />
     <ClInclude Include="geom.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="logic.h" />

@@ -40,7 +40,11 @@ struct _CrdConverter<_To<_TT>>
 	}
 };
 
-#define crd_cast(_Type) _CrdConverter<_Type>::_convert
+template<typename _To, typename _From>
+__forceinline _To crd_cast(_From const& _crdVal) 
+{
+	return _CrdConverter<_To>::_convert(_crdVal);
+}
 
 #undef enable_if
 

@@ -297,26 +297,26 @@ struct all_true<b>
 
 //////////////////////////////////////////////////////////////////////////////
 
-template<int...>
-struct sum;
-
-template<int n, int... rest>
-struct sum<n, rest...>
-{
-	static constexpr int value = n + sum<rest...>::value;
-};
-
-template<int n>
-struct sum<n>
-{
-	static constexpr int value = n;
-};
-
-template<>
-struct sum<>
-{
-	static constexpr int value = 0;
-};
+//template<int...>
+//struct sum;
+//
+//template<int n, int... rest>
+//struct sum<n, rest...>
+//{
+//	static constexpr int value = n + sum<rest...>::value;
+//};
+//
+//template<int n>
+//struct sum<n>
+//{
+//	static constexpr int value = n;
+//};
+//
+//template<>
+//struct sum<>
+//{
+//	static constexpr int value = 0;
+//};
 
 //////////////////////////////////////////////////////////////////////////////
 
