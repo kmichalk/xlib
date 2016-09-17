@@ -37,7 +37,7 @@ public:
 
 	inline operator bool() const
 	{
-		return static_cast<bool>(val_);
+		return bool(val_);
 	}
 
 	inline Num& operator++()
@@ -123,11 +123,12 @@ public:
 		return std::to_string(val_);
 	}
 
-	static inline T min() const
+	static constexpr inline T min()
 	{
 		return std::numeric_limits<T>::lowest();
 	}
-	static inline T max() const
+
+	static constexpr inline T max()
 	{
 		return std::numeric_limits<T>::max();
 	}

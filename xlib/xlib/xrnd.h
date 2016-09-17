@@ -3,7 +3,7 @@
 #define XRND_H
 #include <random>
 #include <cmath>
-#include "Timer.h"
+#include "timer.h"
 #include "more_type_traits.h"
 
 #define enable_if typename std::enable_if_t
@@ -119,7 +119,7 @@ template<
 
 template<typename T, typename Distribution, typename Engine>
 long long int _CurrentEngine::rand_helper_ =
-	x::timer<std::chrono::seconds>::epoch();
+	timer<std::chrono::seconds>::epoch();
 
 template<typename T, typename Distribution, typename Engine>
 Engine _CurrentEngine::engine_ = Engine();

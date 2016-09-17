@@ -100,15 +100,18 @@ void MainThread::exit()
 void TimedProcess::process()
 {
 	running_ = true;
+	unsigned long sleepTime;
 	processTimer_.tic();
 	while (running_) {
 		this->task();
-		Sleep(x::cutl(processPeriod_-processTimer_.measure()));
+		sleepTime = x::cutl((processPeriod_-processTimer_.measure())*1000);
+		if (sleepTime > minSleepTime_) Sleep(sleepTime);
 	}
 }
 
-TimedProcess::TimedProcess(double processPeriod):
-	processTimer_{0.001},
-	processPeriod_{processPeriod}
+TimedProcess::TimedProcess(double processPeriod, unsigned long minSleepTime):
+	processTimer_{},
+	processPeriod_{processPeriod},
+	minSleepTime_{minSleepTime}
 {
 }

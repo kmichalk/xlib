@@ -125,10 +125,34 @@
     <ClInclude Include="autolim.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ct_algorithm.h">
+    <ClInclude Include="fractions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fractions.h">
+    <ClInclude Include="ctmath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctarray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="disp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="listed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="autoref.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="finally.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="static_if.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bridge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="observer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

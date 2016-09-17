@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CRD_H
+#define CRD_H
 
 #include "more_type_traits.h"
 #include "simple.h"
@@ -9,7 +10,7 @@
 #define is_signed(type) !std::is_unsigned<type>::value
 
 template<typename T = double>
-class crd
+class crd: public x::triv_cpy
 {
 	template<typename Y>
 	using is_real_type_ = std::is_floating_point<Y>;
@@ -43,17 +44,17 @@ public:
 
 	static const crd<T> ZERO;
 
-	crd() :
+	constexpr crd() :
 		x{0}, y{0}
 	{
 	}
 
-	crd(T x, T y) :
+	constexpr crd(T x, T y) :
 		x{x}, y{y}
 	{
 	}
 
-	crd(const crd<T>& other) :
+	constexpr crd(const crd<T>& other) :
 		x{other.x}, y{other.y}
 	{
 	}
@@ -135,6 +136,11 @@ public:
 	crd<T> operator-() const
 	{
 		return crd<T>(-x, -y);
+	}
+	template<typename Y>
+	bool operator==(crd<Y> const& other) const
+	{
+		return x==other.x && y==other.y;
 	}
 	crd<T> dir() const
 	{
@@ -236,10 +242,29 @@ __forceinline auto hypot(crd<T> const& c)
 	return hypot(c.x, c.y);
 }
 
+template<typename T>
+crd<T> project(crd<T> const& v, crd<T> const& on)
+{
+	T dotParam = (v*on)/on.len2();
+	return crd<T>{dotParam*on.x, dotParam*on.y};
+}
+
+template<typename T>
+__forceinline crd<T> abs(crd<T> const& c)
+{
+	return{abs(c.x),abs(c.y)};
+}
+
 template<typename T, typename Y>
 inline auto triangleField(crd<T> const& c1, crd<Y> const& c2)
 {
 	return abs(crossVal(c1, c2)) / 2.0;
+}
+
+template<typename T, typename Y>
+inline auto mean(crd<T> const& c1, crd<Y> const& c2)
+{
+	return (c2-c1)/2.0 + c1;
 }
 
 template<typename T>
@@ -248,3 +273,5 @@ const crd<T> crd<T>::ZERO = {0,0};
 #undef conditional
 #undef is_real_type
 #undef is_signed
+
+#endif

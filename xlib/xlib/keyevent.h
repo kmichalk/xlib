@@ -238,22 +238,20 @@
 
 class Event: enumed
 {
-protected:
-	Event(): typenum()
-	{}
-
-	Event(Fn<void()> const& action): typenum(),
-		action{action}
-	{}
-
 public:
-	Fn<void()> action;
+	Event() = delete;
+	Event(x::Callable<void()> const& action): typenum(),
+		action_{action.copy()}
+	{}
+
+	x::Callable<void()>* action_;
+public:	
 
 	virtual bool trigger() const abstract;
 	virtual void process() abstract;
 	virtual void operator()()
 	{
-		/*emit */action();
+		action_->call();
 	}
 	virtual bool operator==(Event const& other)
 	{
@@ -262,6 +260,11 @@ public:
 
 	template<typename EventType>
 	friend class EventHandler;
+
+	virtual ~Event()
+	{
+		delete action_;
+	}
 };
 
 #include <Windows.h>
@@ -326,11 +329,18 @@ protected:
 	bool once;
 
 public:
-	KeyEvent(): typenum(),
-		key{DEF_KEY}, pressed{false}, once{true}
-	{}
+	KeyEvent() = delete;
 
-	template<typename F>
+	KeyEvent(
+		WKey key,
+		bool once,
+		x::Callable<void()> const& action): typenum(),
+		Event{action},
+		key{key}, pressed{false}, once{once}
+	{
+	}
+
+	/*template<typename F>
 	KeyEvent(
 		WKey key,
 		bool once,
@@ -351,7 +361,8 @@ public:
 	{
 		static_assert(is_member_fn_ptr<F>::value,
 			"This KeyEvent constructor only accepts member function pointers.");
-	}
+	}*/
+
 
 	/*template<typename... S>
 	KeyEvent(
@@ -367,14 +378,15 @@ public:
 
 	KeyEvent& operator=(const KeyEvent& other)
 	{
-		action = other.action;
+		if (action_) delete action_;
+		action_= other.action_->copy();
 		key = other.key;
 		pressed = other.pressed;
 		once = other.once;
 		return *this;
 	}
 
-	virtual bool operator==(Event const& other) override
+	/*virtual bool operator==(Event const& other) override
 	{
 		try {
 			KeyEvent const& ke = typenum_cast<KeyEvent const&>(other);
@@ -383,7 +395,7 @@ public:
 		catch (std::bad_cast) {
 			return false;
 		}
-	}
+	}*/
 
 	/*virtual bool trigger() const override
 	{
@@ -415,27 +427,34 @@ public:
 class KeyPressEvent: public KeyEvent, enumed
 {
 public:
-	KeyPressEvent(): typenum(),
-		KeyEvent{}
-	{}
+	KeyPressEvent() = delete;
 
-	template<typename F>
+	/*template<typename F>
 	KeyPressEvent(
 		WKey key,
 		bool once,
-		F slot_fn) : typenum(),
-		KeyEvent{key,once,slot_fn}
+		F fn) : typenum(),
+		KeyEvent{key,once,Fn<void()>{fn}}
 	{
 	}
 
-	template<typename T, typename F>
+	template<typename T>
 	KeyPressEvent(
 		WKey key,
 		bool once,
 		T* obj,
-		F slot_fn): typenum(),
-		KeyEvent{key,once,obj,slot_fn}
+		void(T::*memberFn)()): typenum(),
+		KeyEvent{key,once,Fn<void()>{obj,memberFn}}
 	{
+	}*/
+
+	KeyPressEvent(
+		WKey key,
+		bool once,
+		x::Callable<void()> const& fn): typenum(),
+		KeyEvent{key,once, fn}
+	{
+		//std::cout<<"e";
 	}
 
 	virtual bool trigger() const override
@@ -448,9 +467,9 @@ public:
 		if (trigger()) {
 			if (!pressed) {
 				pressed = true;
-				/*emit */action();
+				action_->call();
 			}
-			else if (!once)	/*emit */action();
+			else if (!once)	action_->call();
 		}
 		else if (pressed)
 			pressed = false;
@@ -460,16 +479,15 @@ public:
 class KeyReleaseEvent: public KeyEvent, enumed
 {
 public:
-	KeyReleaseEvent(): typenum(),
-		KeyEvent{}
-	{}
+	KeyReleaseEvent() = delete;
 
-	template<typename F>
+	/*template<typename F>
 	KeyReleaseEvent(
-		WKey key,
+		enable_if<!std::is_base_of<Callable<void()>, std::remove_reference_t<F>>::value,WKey> key,
 		bool once,
-		F slot_fn) : typenum(),
-		KeyEvent{key,once,slot_fn}
+		F fn) : 
+		typenum(),
+		KeyEvent{key,once,Fn<void()>{fn}}
 	{
 	}
 
@@ -478,9 +496,18 @@ public:
 		WKey key,
 		bool once,
 		T* obj,
-		F slot_fn) : typenum(),
-		KeyEvent{key,once,obj,slot_fn}
+		void(T::*memberFn)()) : typenum(),
+		KeyEvent{key,once,Fn<void()>{obj,memberFn}}
 	{
+	}
+*/
+	KeyReleaseEvent(
+		WKey key,
+		bool once,
+		x::Callable<void()> const& fn) : typenum(),
+		KeyEvent{key,once, fn}
+	{
+		//std::cout<<"e";
 	}
 
 	virtual bool trigger() const override
@@ -493,9 +520,9 @@ public:
 		if (trigger()) {
 			if (pressed) {
 				pressed = false;
-				/*emit */action();
+				action_->call();
 			}
-			else if (!once)	/*emit */action();
+			else if (!once)	action_->call();
 		}
 		else if (!pressed)
 			pressed = true;
@@ -508,7 +535,9 @@ class EventHandler: public TimedProcess
 	x::vector<EventType*> events_;
 
 public:
-	EventHandler(double processPeriod = 10):
+	static constexpr double DEF_PROCESS_PERIOD = 0.025;
+
+	EventHandler(double processPeriod = DEF_PROCESS_PERIOD):
 		TimedProcess{processPeriod}
 	{
 	}
@@ -528,6 +557,7 @@ public:
 	~EventHandler()
 	{
 		events_.clear<x::vector_opt::PTR_DELETE>();
+		std::cout<<"~EvHan\n";
 	}
 };
 

@@ -25,7 +25,7 @@ public:
 	}
 
 	template<typename Y>
-	line(crd<Y> const p1, crd<Y> const& p2) :
+	line(crd<Y> const& p1, crd<Y> const& p2) :
 		a{(p2.y-p1.y)/(p2.x-p1.x)}, b{-a*p1.x+p1.y}
 	{
 	}
@@ -50,6 +50,14 @@ public:
 	{
 		b = p.y-a*p.x;
 		return *this;
+	}
+
+	crd<T> crossPos(line<T> const& other)
+	{
+		crd<T> result;
+		result.x = (other.b-b)/(a-other.a);
+		result.y = a*result.x+b;
+		return result;
 	}
 
 	template<typename Y>
@@ -87,7 +95,6 @@ public:
 
 	T relation(crd<T> const& c) const
 	{
-		//cout<<a<<" "<<b<<endl;
 		return c.y-a*c.x-b;
 	}
 
@@ -95,6 +102,12 @@ public:
 	double dist(crd<Y> const& p) const
 	{
 		return abs(a*p.x-p.y+b)/sqrt(a*a+1);
+	}
+
+	template<typename Y>
+	double distRel(crd<Y> const& p) const
+	{
+		return (a*p.x-p.y+b)/sqrt(a*a+1);
 	}
 
 	template<typename Y>

@@ -130,5 +130,5 @@ public:
 //std::ostream &operator<<(std::ostream &os, const timer<T> &t)
 
 
-};
+}
 #endif //TIMER_H_

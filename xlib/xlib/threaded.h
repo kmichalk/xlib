@@ -20,7 +20,7 @@ public:
 	virtual void task() abstract;
 	virtual void stop() abstract;
 	virtual void process();	
-	inline void run();
+	virtual void run();
 	virtual ~Threaded();
 
 	friend class MainThread;
@@ -37,21 +37,24 @@ class ThreadedTask : public Threaded
 class ThreadedProcess: public Threaded
 {	
 protected:
+public:
+	ThreadedProcess();
 	virtual void task() abstract override;
 	virtual void stop() override;
 	virtual void process() override;
-public:
-	ThreadedProcess();
 	virtual ~ThreadedProcess();
 };
 
 class TimedProcess: public ThreadedProcess
 {
 	double processPeriod_;
+	unsigned long minSleepTime_;
 	x::timer<std::chrono::milliseconds> processTimer_;
-	virtual void process() override;
 public:
-	TimedProcess(double processPeriod);
+	static constexpr unsigned long DEF_MIN_SLEEP_TIME = 10;
+
+	TimedProcess(double processPeriod, unsigned long minSleepTime = DEF_MIN_SLEEP_TIME);
+	virtual void process() override;
 };
 
 class MainThread

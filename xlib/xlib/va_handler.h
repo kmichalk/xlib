@@ -1,104 +1,151 @@
-#pragma once
+#ifndef VA_PACK_H
+#define VA_PACK_H
 
 #define enable_if std::enable_if_t
+#define decay std::decay_t
 #include "more_type_traits.h"
 
-//template<typename... T>
-//class va_handler
-//{
-//	static_assert(all_same<T...>::value,
-//		"Arguments have to be of the same type.");
-//private:
-//	using type_ = x::select_t<1, T...>;
-//	type_* args_;
-//	size_t size_;
-//public:
-//	__forceinline size_t size() const
-//	{
-//		return size_;
-//	}
-//	va_handler(T... args) :
-//		size_{sizeof...(args)}
-//	{
-//		args_ = new type_[size_]{args...};
-//	}
-//	__forceinline type_& operator[](size_t i)
-//	{
-//		return args_[i];
-//	}
-//	type_& get(size_t i)
-//	{
-//		if (i<size_) {
-//			return args_[i];
-//		}
-//		throw "out of size";
-//	}
-//	~va_handler()
-//	{
-//		delete[] args_;
-//	}
-//};
-
-namespace x
+namespace x::va
 {
-
-	template<typename... A>
-	class va_handler
+	template<typename... Types>
+	class pack
 	{
 	public:
-		static constexpr unsigned size = sizeof...(A);
+		static constexpr unsigned size = sizeof...(Types);
 
 	private:
 		template<int i>
-		using ArgT_ = x::select_t<i, A...>;
+		using NType_ = select_t<i, Types...>;
 
-		class Eraser_ {};
+		class Eraser_
+		{
+		public:
+			virtual Eraser_* copy() const abstract;
+		};
 
 		template<typename T>
-		class FnConcrete_: public Eraser_
+		class Concrete_: public Eraser_
 		{
 		public:
 			T value;
-			FnConcrete_(T const& value):
-				value{value}
+
+			Concrete_(T&& value):
+				value{std::forward<T>(value)}
 			{
+			}
+
+			virtual Eraser_* copy() const override
+			{
+				return new Concrete_{*this};
 			}
 		};
 
 		Eraser_* args_[size];
 
-		/*template<int... i>
-		void assign_(seq<i...>&, A const&... args)
+		template<int... i>
+		__forceinline void copy_(pack<Types...> const& other, seq<i...>&)
 		{
-			args_ = new Eraser_*[size] { new Concrete_<A>{args}... };
-		}*/
+			expand((args_[i] = other.args_[i]->copy())...);
+		}
+
+		template<typename Func, size_t... Is>
+		__forceinline auto unpackTo_(Func&& func, seq<Is...>&) const
+		{
+			return func(static_cast<Concrete_<NType_<Is+1>>*>(args_[Is])->value...);
+		}
 
 	public:
-		va_handler(A const&... args):
-			args_{(new FnConcrete_<A>{args}) ...}
+		pack(Types&&... args):
+			args_{(new Concrete_<decay<Types>>{std::forward<Types>(args)}) ...}
 		{
 		}
 
-		template<unsigned i>
-		__forceinline ArgT_<i>& get()
+		pack(pack<Types...> const& other)
 		{
-			static_assert(i <= size,
-				"Index exceeds parameter pack size.");
-			return static_cast<FnConcrete_<ArgT_<i>>*>(args_[i-1])->value;
+			copy_(other, gen_seq<size>{});
 		}
 
-		~va_handler()
+		/*template<size_t... Is>
+		pack(pack<Types...> const& other, seq<Is...>&):
+			args_{other.args_[Is]->copy()...}
+		{
+		}*/
+
+		pack(pack<Types...>&& other):
+			args_{other.args_}
+		{
+		}
+
+		pack<Types...>& operator=(pack<Types...> const& other)
+		{
+			copy_(other, gen_seq<size>{});
+			return *this;
+		}
+
+		template<size_t I>
+		__forceinline auto& get()
+		{
+			static_assert(I <= size, "Index exceeds parameter pack size.");
+			return static_cast<Concrete_<NType_<I+1>>*>(args_[I])->value;
+		}
+
+		template<size_t I>
+		__forceinline NType_<I> const& cget() const
+		{
+			static_assert(I <= size, "Index exceeds parameter pack size.");
+			return static_cast<Concrete_<NType_<I+1>>*>(args_[I])->value;
+		}
+
+		~pack()
 		{
 			for (int i = 0; i<size; ++i) delete args_[i];
 		}
+
+		template<typename Func, typename... PackTypes>
+		friend auto unpack(Func&&, pack<PackTypes...> const&);
 	};
 
-	template<typename... A>
-	inline va_handler<A...> unpack(A const&... args)
+
+
+	template<typename... Types>
+	inline pack<Types...> make_pack(Types&&... args)
 	{
-		return va_handler<A...>{args...};
+		return pack<Types...>{std::forward<Types>(args)...};
 	}
 
+	/*template<typename... Types>
+	inline pack<Types...> make_pack(pack<Types...> const& toCopy)
+	{
+		return pack<Types...>{toCopy, type_seq<Types...>{}};
+	}*/
+
 	template<typename... T>
-	__forceinline void expand(T...) {}
+	__forceinline constexpr void expand(T...) {}
+
+	template<typename Func, typename ...PackTypes>
+	__forceinline auto unpack(Func && func, pack<PackTypes...> const & argPack)
+	{
+		return argPack.unpackTo_(std::forward<Func>(func), gen_seq<argPack.size>{});
+	}
+
+	template<typename _ArrType, size_t _arrSize, typename _InitFirst, typename... _InitRest>
+	__forceinline void arrinit(_ArrType(&arr)[_arrSize], _InitFirst&& firstVal, _InitRest&&... restVal)
+	{
+		static_assert(_arrSize == sizeof...(_InitRest)+1, "Array size and number of initializing arguments don't match.");
+
+		arr[0] = firstVal;
+		arrinit((_ArrType(&)[_arrSize-1])(*((_ArrType*)arr + 1)), restVal...);
+	}
+
+	template<typename _ArrType, size_t _arrSize, typename _InitFirst>
+	__forceinline void arrinit(_ArrType(&arr)[_arrSize], _InitFirst&& firstVal)
+	{
+		static_assert(_arrSize == 1, "Array size and number of initializing arguments don't match.");
+
+		arr[0] = firstVal;
+	}
 }
+#undef enable_if 
+#undef decay 
+
+#endif

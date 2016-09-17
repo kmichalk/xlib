@@ -3,7 +3,7 @@
 
 #include "more_type_traits.h"
 #include "range.h"
-#include "ct_algorithm.h"
+#include "ctmath.h"
 #include <cmath>
 
 #define PI 3.141592653589793
@@ -16,31 +16,31 @@
 namespace x
 {
 	template<typename T1, typename T2>
-	inline auto min(T1 n1, T2 n2) noexcept
+	inline constexpr auto min(T1 n1, T2 n2) noexcept
 	{
 		return n1 < n2 ? n1 : n2;
 	}
 
 	template<typename T1, typename T2>
-	inline auto max(T1 n1, T2 n2) noexcept
+	inline constexpr auto max(T1 n1, T2 n2) noexcept
 	{
 		return n1 > n2 ? n1 : n2;
 	}
 
 	template<typename T1, typename T2 = int>
-	inline auto cutl(T1 val, T2 limit = 0) noexcept
+	inline constexpr auto cutl(T1 val, T2 limit = 0) noexcept
 	{
 		return val < limit ? limit : val;
 	}
 
 	template<typename T1, typename T2 = int>
-	inline auto cutg(T1 val, T2 limit = 0) noexcept
+	inline constexpr auto cutg(T1 val, T2 limit = 0) noexcept
 	{
 		return val > limit ? limit : val;
 	}
 
 	template<typename T1, typename T2, typename T3>
-	inline auto cutr(T1 val, T2 a, T3 b) noexcept
+	inline constexpr auto cutr(T1 val, T2 a, T3 b) noexcept
 	{
 		return val < a ? a : val > b ? b : val;
 	}
@@ -213,6 +213,16 @@ namespace x
 	__forceinline constexpr auto to_rad(T value) noexcept
 	{
 		return value*PI/180.0;
+	}
+
+	__forceinline constexpr bool even(int value) noexcept
+	{
+		return !bool(value % 2);
+	}
+
+	__forceinline constexpr bool odd(int value) noexcept
+	{
+		return bool(value % 2);
 	}
 }
 

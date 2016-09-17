@@ -3,13 +3,43 @@
 
 namespace x
 {
-	template<typename T>
+	template<typename _Type>
 	class list
 	{
 		struct ListElem
 		{
-			T value;
+			_Type value;
 			ListElem* next;
+
+			ListElem():
+				next{nullptr}
+			{
+			}
+
+			ListElem(_Type const& value):
+				value{value},
+				next{nullptr}
+			{
+			}
+
+			ListElem(_Type&& value):
+				value{std::move(value)},
+				next{nullptr}
+			{
+			}
+
+			ListElem(ListElem const& other):
+				value{other.value},
+				next{new ListElem{*other.next}}
+			{
+			}
+
+			ListElem(ListElem&& other):
+				value{std::move(other.value)},
+				next{other.next}
+			{
+				other.next = nullptr;
+			}
 		};
 
 		ListElem* first_;
@@ -22,9 +52,39 @@ namespace x
 		{
 		}
 
-		list(list<T> const& other):
+		list(list<_Type> const& other):
+			first_{new ListElem{*other.first_}},
 			size_{other.size_}
 		{
+		}
+
+		list(list<_Type>&& other):
+			first_{other.first_},
+			size_{std::move(other.size_)}
+		{
+			other.first_ = nullptr;
+		}
+
+		inline bool empty() const
+		{
+			return !bool(size_);
+		}
+
+		inline operator bool() const
+		{
+			return bool(size_);
+		}
+
+		list<_Type>& push_back(_Type const& value)
+		{
+
+		}
+
+
+		~list()
+		{
+			if (first_)	
+				delete first_;
 		}
 	};
 }

@@ -16,7 +16,7 @@ Frac::Frac(Frac const & other):
 }
 
 Frac::Frac(int value):
-	nun{value}, denom{1}
+	num{value}, denom{1}
 {
 }
 
@@ -32,6 +32,7 @@ Frac & Frac::operator=(Frac const & other)
 {
 	num = other.num;
 	denom = other.denom;
+	return *this;
 }
 
 bool Frac::operator==(Frac const & other)

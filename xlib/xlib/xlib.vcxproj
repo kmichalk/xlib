@@ -88,7 +88,7 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Custom</Optimization>
+      <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>D:\VSProjects\SFML-2.3.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -97,6 +97,10 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <PreprocessToFile>false</PreprocessToFile>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <MinimalRebuild>true</MinimalRebuild>
+      <AdditionalUsingDirectories>C:\Program Files %28x86%29\Windows Kits\8.1\References\CommonConfiguration\Neutral\Annotated;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -162,25 +166,33 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="autolim.h" />
+    <ClInclude Include="autoref.h" />
     <ClInclude Include="auto_cast.h" />
+    <ClInclude Include="bridge.h" />
     <ClInclude Include="clarg.h" />
     <ClInclude Include="crd.h" />
     <ClInclude Include="crd_cast.h" />
-    <ClInclude Include="ct_algorithm.h" />
+    <ClInclude Include="ctarray.h" />
+    <ClInclude Include="ctmath.h" />
+    <ClInclude Include="disp.h" />
     <ClInclude Include="error.h" />
+    <ClInclude Include="finally.h" />
     <ClInclude Include="fn.h" />
     <ClInclude Include="fn_helper.h" />
     <ClInclude Include="fractions.h" />
     <ClInclude Include="geom.h" />
     <ClInclude Include="list.h" />
+    <ClInclude Include="listed.h" />
     <ClInclude Include="logic.h" />
     <ClInclude Include="mouse.h" />
     <ClInclude Include="keyevent.h" />
     <ClInclude Include="num.h" />
     <ClInclude Include="loops.h" />
+    <ClInclude Include="observer.h" />
     <ClInclude Include="range.h" />
     <ClInclude Include="realcall.h" />
     <ClInclude Include="simple.h" />
+    <ClInclude Include="static_if.h" />
     <ClInclude Include="threaded.h" />
     <ClInclude Include="vamacros.h" />
     <ClInclude Include="size.h" />
