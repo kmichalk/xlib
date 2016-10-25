@@ -84,7 +84,7 @@ namespace x
 			return dynamic_ptr<_Type>{ForcePtrCtorFlag{}, ptr};
 		}
 
-		template<_capture(_Type), _concept<std::is_default_constructible<_Type>::value>>
+		template<_capture<_Type>, _concept<std::is_default_constructible<_Type>::value>>
 		__forceinline dynamic_ptr():
 			ptr_{new _Type{}}
 		{

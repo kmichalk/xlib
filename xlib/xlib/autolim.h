@@ -6,49 +6,49 @@
 
 namespace x
 {
-	template<typename T>
+	template<typename _Type>
 	class Min
 	{
-		mutable T value_;
+		mutable _Type value_;
 	public:
 		inline constexpr Min():
-			value_{std::numeric_limits<T>::max()}
+			value_{std::numeric_limits<_Type>::max()}
 		{
 		}
 
-		__forceinline bool operator()(const T val)
+		__forceinline bool operator()(const _Type val)
 		{
 			return (val < value_ ? (value_ = val, true) : false);
 		}
 
-		__forceinline T operator()() const
+		__forceinline _Type operator()() const
 		{
 			return value_;
 		}
 	};
 
-	template<typename T>
+	template<typename _Type>
 	class Max
 	{
-		mutable T value_;
+		mutable _Type value_;
 	public:
 		inline constexpr Max():
-			value_{std::numeric_limits<T>::lowest()}
+			value_{std::numeric_limits<_Type>::lowest()}
 		{
 		}
 
-		__forceinline bool operator()(const T val)
+		__forceinline bool operator()(const _Type val)
 		{
 			return (val > value_ ? (value_ = val, true) : false);
 		}
 
-		__forceinline T operator()() const
+		__forceinline _Type operator()() const
 		{
 			return value_;
 		}
 	};
 
-	template<unsigned N>
+	template<unsigned _num>
 	class Counter
 	{
 		unsigned value_;
@@ -65,7 +65,7 @@ namespace x
 
 		__forceinline bool operator++()
 		{
-			return ++value_ == N;
+			return ++value_ == _num;
 		}
 
 		__forceinline unsigned operator()() const

@@ -12,6 +12,10 @@ void Threaded::process()
 	this->process();
 }
 
+void Threaded::prepare()
+{
+}
+
 void Threaded::run()
 {
 	thread_ = std::thread(&Threaded::process, this);
@@ -65,6 +69,10 @@ void MainThread::process()
 {
 }
 
+void MainThread::prepare()
+{
+}
+
 void MainThread::add(Threaded * process)
 {
 	processes_.push_back(process);
@@ -77,11 +85,12 @@ void MainThread::add(Threaded & process)
 
 void MainThread::run()
 {
+	prepare();
 	running_ = true;
 	for (Threaded*& p : processes_)
 		p->run();
 	this->process();
-	//while (running_);// Sleep(10);
+	//while (running_) this->process();
 	exit();
 }
 
@@ -97,6 +106,10 @@ void MainThread::exit()
 	}
 }
 
+MainThread::~MainThread()
+{
+}
+
 void TimedProcess::process()
 {
 	running_ = true;
@@ -105,8 +118,12 @@ void TimedProcess::process()
 	while (running_) {
 		this->task();
 		sleepTime = x::cutl((processPeriod_-processTimer_.measure())*1000);
-		if (sleepTime > minSleepTime_) Sleep(sleepTime);
+		//if (sleepTime > minSleepTime_) Sleep(sleepTime);
 	}
+}
+
+TimedProcess::~TimedProcess()
+{
 }
 
 TimedProcess::TimedProcess(double processPeriod, unsigned long minSleepTime):

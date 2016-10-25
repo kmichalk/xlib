@@ -1,6 +1,8 @@
 #ifndef _WRAP_H
 #define _WRAP_H_
 
+#include "more_type_traits.h"
+
 namespace x::wrap
 {
 	template<class _Type>
@@ -9,7 +11,7 @@ namespace x::wrap
 		_Type* value_;
 
 	public:
-		template<class _Arg>
+		template<class _Arg, _concept<!x::same_template<_Arg, ptr<_Type>>::value>>
 		inline ptr(_Arg& ref) :
 			value_{static_cast<_Type*>(&ref)}
 		{
@@ -18,6 +20,12 @@ namespace x::wrap
 		template<class _Arg>
 		inline ptr(_Arg* ptr) :
 			value_{static_cast<_Type*>(ptr)}
+		{
+		}
+
+		template<class _Other>
+		inline ptr(ptr<_Other> const& other):
+			value_{static_cast<_Type*>(other.value_)}
 		{
 		}
 

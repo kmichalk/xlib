@@ -47,6 +47,7 @@ namespace x::math
 	public:
 		virtual _Type operator()(_Type) const abstract;
 		virtual expr<_Type>* copy() const abstract;
+		virtual size_t argnum() const abstract;
 	};
 
 	template<class _Type, unsigned _nArg>
@@ -86,19 +87,6 @@ namespace x::math
 		}
 
 		template<class... _Args>
-		func(FuncPtr func, _Args const&... args):
-			func_{func},
-			args_{args.copy()...}
-		{
-			static_assert(
-				x::all_true<std::is_base_of<expr<_Type>, _Args>::value...>::value,
-				"Arguments provided are not expr.");
-			static_assert(
-				sizeof...(_Args) == _nArg,
-				"Too many arguments.");
-		}
-
-		template<class... _Args>
 		func(FuncPtr func, _Args const*... args):
 			func_{func},
 			args_{args->copy()...}
@@ -110,6 +98,19 @@ namespace x::math
 				sizeof...(_Args) == _nArg,
 				"Too many arguments.");
 		}
+
+		template<class... _Args, _concept<!x::any_true<std::is_pointer<_Args>::value...>>>
+		func(FuncPtr func, _Args const&... args):
+			func_{func},
+			args_{args.copy()...}
+		{
+			static_assert(
+				x::all_true<std::is_base_of<expr<_Type>, _Args>::value...>::value,
+				"Arguments provided are not expr.");
+			static_assert(
+				sizeof...(_Args) == _nArg,
+				"Too many arguments.");
+		}		
 
 		func(func<_Type, _nArg> const& other):
 			func_{other.func_},
@@ -134,15 +135,20 @@ namespace x::math
 		{
 			return new func<_Type, _nArg>{*this};
 		}
+
+		virtual size_t argnum() const override
+		{
+			return _nArg;
+		}
 	};
 
 	template<class _Type>
 	class cval:
 		public expr<_Type>
 	{
+	public:
 		_Type value_;
 
-	public:
 		cval() = delete;
 
 		cval(_Type value):
@@ -168,6 +174,11 @@ namespace x::math
 		virtual expr<_Type>* copy() const override
 		{
 			return new cval<_Type>{*this};
+		}
+
+		virtual size_t argnum() const override
+		{
+			return 0;
 		}
 	};
 
@@ -208,6 +219,11 @@ namespace x::math
 		virtual expr<_Type>* copy() const override
 		{
 			return new val<_Type>{*this};
+		}
+
+		virtual size_t argnum() const override
+		{
+			return 0;
 		}
 	};
 }

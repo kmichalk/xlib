@@ -21,10 +21,10 @@ namespace x
 
 		FakeType(FakeType<_Type>&&) = delete;
 
-		inline void operator=(FakeType<_Type> const& other)
-		{
+		__forceinline FakeType<_Type>& operator=(FakeType<_Type> const& other) = default;
+		/*{
 			memcpy(fakeData_, other.fakeData_, size_);
-		}
+		}*/
 
 		~FakeType()
 		{

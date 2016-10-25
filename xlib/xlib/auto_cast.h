@@ -7,75 +7,77 @@
 #define enable_if std::enable_if_t
 #define forceinline __forceinline
 
-template<typename _Type>
-__forceinline constexpr _Type* rem_const(_Type const * ptr)
+namespace x
 {
-	return const_cast<_Type*>(ptr);
+	template<typename _Type>
+	__forceinline constexpr _Type* rem_const(_Type const * ptr)
+	{
+		return const_cast<_Type*>(ptr);
+	}
+
+	template<typename _Type>
+	__forceinline constexpr _Type* rem_const(_Type * ptr)
+	{
+		return ptr;
+	}
+
+
+	template<typename _Type>
+	__forceinline constexpr _Type& rem_const(_Type const & ref)
+	{
+		return const_cast<_Type&>(ref);
+	}
+
+	template<typename _Type>
+	__forceinline constexpr _Type& rem_const(_Type & ref)
+	{
+		return ref;
+	}
+
+
+	template<typename _Type>
+	__forceinline constexpr _Type* add_const(_Type * ptr)
+	{
+		return const_cast<_Type const*>(ptr);
+	}
+
+	template<typename _Type>
+	__forceinline constexpr _Type* add_const(_Type const * ptr)
+	{
+		return ptr;
+	}
+
+
+	template<typename _Type>
+	__forceinline constexpr _Type& add_const(_Type & ref)
+	{
+		return const_cast<_Type const&>(ref);
+	}
+
+	template<typename _Type>
+	__forceinline constexpr _Type& add_const(_Type const & ref)
+	{
+		return ref;
+	}
+
 }
-
-template<typename _Type>
-__forceinline constexpr _Type* rem_const(_Type * ptr)
-{
-	return ptr;
-}
-
-
-template<typename _Type>
-__forceinline constexpr _Type& rem_const(_Type const & ref)
-{
-	return const_cast<_Type&>(ref);
-}
-
-template<typename _Type>
-__forceinline constexpr _Type& rem_const(_Type & ref)
-{
-	return ref;
-}
-
-
-template<typename _Type>
-__forceinline constexpr _Type* add_const(_Type * ptr)
-{
-	return const_cast<_Type const*>(ptr);
-}
-
-template<typename _Type>
-__forceinline constexpr _Type* add_const(_Type const * ptr)
-{
-	return ptr;
-}
-
-
-template<typename _Type>
-__forceinline constexpr _Type& add_const(_Type & ref)
-{
-	return const_cast<_Type const&>(ref);
-}
-
-template<typename _Type>
-__forceinline constexpr _Type& add_const(_Type const & ref)
-{
-	return ref;
-}
-
-
-template<typename _To, typename _From, template<typename> class _Container>
-__forceinline constexpr _Container<_To>& container_cast(_Container<_From*>& container)
-{
-	static_assert(std::is_base_of<std::remove_pointer_t<_To>, _From>::value,
-		"Only certain upcasts are allowed using container_cast.");
-
-	return (_Container<_To>&)container;
-}
-
-template<typename _To, typename _From, size_t _nDim>
-__forceinline constexpr x::vector<_To>& container_cast(x::vector<_From*, _nDim>& container)
-{
-	static_assert(std::is_base_of<std::remove_pointer_t<_To>, _From>::value,
-		"Only certain upcasts are allowed using container_cast.");
-
-	return (x::vector<_To, _nDim> &)container;
-}
+//template<typename _To, typename _From, template<typename> class _Container>
+//__forceinline _Container<_To>& container_cast(_Container<_From*>& container)
+//{
+//	static_assert(std::is_base_of<std::remove_pointer_t<_To>, _From>::value,
+//		"Only certain upcasts are allowed using container_cast.");
+//
+//	return (_Container<_To>&)container;
+//}
+//
+//template<typename _To, typename _From, size_t _nDim>
+//__forceinline x::vector<_To>& container_cast(x::vector<_From*, _nDim>& container)
+//{
+//	static_assert(std::is_base_of<std::remove_pointer_t<_To>, _From>::value,
+//		"Only certain upcasts are allowed using container_cast.");
+//
+//	return (x::vector<_To, _nDim> &)container;
+//}
 //template<typename T, typename Y>
 //forceinline enable_if<std::is_same<std::remove_pointer_t<T>,Y>::value,
 //	T> auto_cast(Y* ptr)

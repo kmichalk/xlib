@@ -2,6 +2,12 @@
 #define _GARBAGE_COLLECTOR_H
 
 #include "more_type_traits.h"
+#include "error.h"
+
+#define DEBUG 1
+#if DEBUG == 1
+#include "disp.h"
+#endif
 
 namespace x
 {
@@ -102,7 +108,7 @@ namespace x
 	//		return *data_->object_;
 	//	}
 
-	//	template<_capture(_Type)>
+	//	template<_capture<_Type>>
 	//	__forceinline enable_if<std::is_class<_Type>::value,
 	//		_Type*> operator->()
 	//	{
@@ -115,10 +121,12 @@ namespace x
 	//	}
 	//};
 
-#define _ASSERT_VOID_DEREF \
+#define _ASSERT_NOT_VOID_DEREF \
 	static_assert(\
 		!IS_VOID_,\
-		"Dereference of void pointer is forbidden.")
+		"Trying to dereference a void pointer.")
+
+#define _ASSERT_NOT_NULLPTR_DEREF if (!this) throw x::error<std::remove_pointer_t<decltype(this)>>{};
 
 #define _DECR(_ptr) (-- *_ptr)
 #define _INCR(_ptr) (++ *_ptr)
@@ -200,26 +208,26 @@ namespace x
 
 		__forceinline _Type& operator*()
 		{
-			_ASSERT_VOID_DEREF;
+			_ASSERT_NOT_VOID_DEREF;
 			return *data_;
 		}
 
 		__forceinline _Type const& operator*() const
 		{
-			_ASSERT_VOID_DEREF;
+			_ASSERT_NOT_VOID_DEREF;
 			return *data_;
 		}
 
 		__forceinline _Type* operator->()
 		{
-			_ASSERT_VOID_DEREF;
-			return data_->object_;
+			_ASSERT_NOT_VOID_DEREF;
+			return data_;
 		}
 
 		__forceinline _Type const* operator->() const
 		{
-			_ASSERT_VOID_DEREF;
-			return data_->object_;
+			_ASSERT_NOT_VOID_DEREF;
+			return data_;
 		}
 
 		__forceinline operator bool () const
@@ -248,9 +256,122 @@ namespace x
 			}
 		}
 	};
+
+	////////////////////////////////////////////////////////////////////////
+
+	template<typename _Type>
+	class safe_ptr
+	{
+	private:
+		static constexpr bool IS_VOID_ =
+			std::is_same<_Type, void>::value;
+
+		_Type*		data_;
+
+	public:
+		inline explicit safe_ptr()
+			:
+			data_{new _Type}
+		{
+		}
+
+		template<typename... _Args>
+		__forceinline explicit safe_ptr(_Args... args)
+			:
+			data_{new _Type{args...}}
+		{
+		}
+
+		inline explicit safe_ptr(safe_ptr<_Type> const& other)
+			:
+			data_{other.data_}
+		{
+		}
+
+		inline explicit safe_ptr(safe_ptr<_Type>&& other)
+			:
+			data_{other.data_}
+		{
+		}
+
+		safe_ptr<_Type>& operator = (safe_ptr<_Type> const& other)
+		{
+			delete data_;
+			data_ = other.data_;
+			return *this;
+		}
+
+		safe_ptr<_Type>& operator = (safe_ptr<_Type>&& other)
+		{
+			delete data_;
+			data_ = other.data_;
+			other.data_ = nullptr;
+			return *this;
+		}
+
+		inline bool operator == (safe_ptr<_Type> const& other) const
+		{
+			return data_ == other.data_;
+		}
+
+		__forceinline _Type& operator*()
+		{
+			_ASSERT_NOT_VOID_DEREF;
+			if (data_)
+				return *data_;
+			throw x::error<safe_ptr<_Type>>{};
+		}
+
+		__forceinline _Type const& operator*() const
+		{
+			_ASSERT_NOT_VOID_DEREF;
+			if (data_)
+				return *data_;
+			throw x::error<safe_ptr<_Type>>{};
+		}
+
+		__forceinline _Type* operator->()
+		{
+			_ASSERT_NOT_VOID_DEREF;
+			if (data_)
+				return data_;
+			throw x::error<safe_ptr<_Type>>{};
+		}
+
+		__forceinline _Type const* operator->() const
+		{
+			_ASSERT_NOT_VOID_DEREF;
+			if (data_)
+				return data_;
+			throw x::error<safe_ptr<_Type>>{};
+		}
+
+		__forceinline operator bool() const
+		{
+			return bool(data_);
+		}
+
+		template<typename _Other>
+		__forceinline operator _Other* ()
+		{
+			return static_cast<_Other*>(data_);
+		}
+
+		template<typename _Other>
+		__forceinline operator _Other const* () const
+		{
+			return static_cast<_Other const*>(data_);
+		}
+
+
+		~safe_ptr()
+		{
+			if (data_) delete data_;
+		}
+	};
 }
 
-#undef _ASSERT_VOID_DEREF
+#undef _ASSERT_NOT_VOID_DEREF
 #undef _DECR
 #undef _INCR
 

@@ -48,8 +48,8 @@ namespace x::va
 			expand((args_[i] = other.args_[i]->copy())...);
 		}
 
-		template<typename Func, size_t... Is>
-		__forceinline auto unpackTo_(Func&& func, seq<Is...>&) const
+		template<typename Expr, size_t... Is>
+		__forceinline auto unpackTo_(Expr&& func, seq<Is...>&) const
 		{
 			return func(static_cast<Concrete_<NType_<Is+1>>*>(args_[Is])->value...);
 		}
@@ -101,8 +101,8 @@ namespace x::va
 			for (int i = 0; i<size; ++i) delete args_[i];
 		}
 
-		template<typename Func, typename... PackTypes>
-		friend auto unpack(Func&&, pack<PackTypes...> const&);
+		template<typename Expr, typename... PackTypes>
+		friend auto unpack(Expr&&, pack<PackTypes...> const&);
 	};
 
 
@@ -122,28 +122,22 @@ namespace x::va
 	template<typename... T>
 	__forceinline constexpr void expand(T...) {}
 
-	template<typename Func, typename ...PackTypes>
-	__forceinline auto unpack(Func && func, pack<PackTypes...> const & argPack)
+	template<typename Expr, typename ...PackTypes>
+	__forceinline auto unpack(Expr && func, pack<PackTypes...> const & argPack)
 	{
-		return argPack.unpackTo_(std::forward<Func>(func), gen_seq<argPack.size>{});
+		return argPack.unpackTo_(std::forward<Expr>(func), gen_seq<argPack.size>{});
 	}
 
-	template<typename _ArrType, size_t _arrSize, typename _InitFirst, typename... _InitRest>
-	__forceinline void arrinit(_ArrType(&arr)[_arrSize], _InitFirst&& firstVal, _InitRest&&... restVal)
-	{
-		static_assert(_arrSize == sizeof...(_InitRest)+1, "Array size and number of initializing arguments don't match.");
 
-		arr[0] = firstVal;
-		arrinit((_ArrType(&)[_arrSize-1])(*((_ArrType*)arr + 1)), restVal...);
+	template<class _Type, size_t _size, size_t... _i, class... _Args>
+	__forceinline void arrinit(_Type(&arr)[_size], x::seq<_i...>&, _Args... args)
+	{
+		static_assert(_size == sizeof...(_Args), "Array size and number of initializing arguments don't match.");
+		
+		x::va::expand((arr[_i] = args)...);
 	}
 
-	template<typename _ArrType, size_t _arrSize, typename _InitFirst>
-	__forceinline void arrinit(_ArrType(&arr)[_arrSize], _InitFirst&& firstVal)
-	{
-		static_assert(_arrSize == 1, "Array size and number of initializing arguments don't match.");
-
-		arr[0] = firstVal;
-	}
+#define arrinit(_arr, ...) x::va::arrinit(_arr, x::gen_seq<x::size(_arr)>{}, __VA_ARGS__)
 }
 #undef enable_if 
 #undef decay 

@@ -20,6 +20,7 @@ public:
 	virtual void task() abstract;
 	virtual void stop() abstract;
 	virtual void process();	
+	virtual void prepare();
 	virtual void run();
 	virtual ~Threaded();
 
@@ -55,21 +56,27 @@ public:
 
 	TimedProcess(double processPeriod, unsigned long minSleepTime = DEF_MIN_SLEEP_TIME);
 	virtual void process() override;
+	virtual ~TimedProcess();
 };
 
 class MainThread
 {
-	std::atomic_bool running_;
 	x::vector<Threaded*> processes_;
+
+protected:
+	bool running_;
 	
 public:
 	MainThread();
 	virtual void process();
+	virtual void prepare();
 	void add(Threaded* process);
 	void add(Threaded& process);
 	void run();
 	void stop();
 	void exit();
+
+	virtual ~MainThread();
 };
 
 #endif

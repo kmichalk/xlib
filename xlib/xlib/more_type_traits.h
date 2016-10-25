@@ -629,7 +629,13 @@ public:\
 		using type = R;
 	};
 
-#define result(_fn) _result<std::remove_pointer_t<decltype(_fn)>>::type
+	template<class _Type>
+	using same_type = _Type;
+
+#define _result(_fn) x::_result<std::remove_pointer_t<decltype(_fn)>>::type
+#define _concept typename = std::enable_if_t
+#define _capture class _Type = x::same_type
+#define _suspend template<class _Suspender = void>
 }
 
 #endif //MORE_TYPE_TRAITS_H

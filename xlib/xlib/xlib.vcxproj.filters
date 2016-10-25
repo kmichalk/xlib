@@ -24,6 +24,9 @@
     <ClCompile Include="fractions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="xstring.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="_void.h">
@@ -153,6 +156,78 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="observer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="abstract.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="atomic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bitliteral.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bitmanager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="debug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dynamic_ptr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="event.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fake.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fncall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mathfn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="member.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="typearr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="warning.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="strmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fixedstr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xstring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="two.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="register.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="id.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="result.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -363,28 +363,28 @@ namespace x
 			return typeEraser_->typenum();
 		}*/
 
-		//template<_capture(_Base), _concept<!IS_VOID_<_Base>>>
+		//template<_capture<_Base>, _concept<!IS_VOID_<_Base>>>
 		inline _Base* operator->()
 		{
 			//std::cout<<"A ->\n";
 			return object_;
 		}
 
-		//template<_capture(_Base), _concept<!IS_VOID_<_Base>>>
+		//template<_capture<_Base>, _concept<!IS_VOID_<_Base>>>
 		inline _Base const* operator->() const
 		{
 			//std::cout<<"A -> c\n";
 			return object_;
 		}
 
-		//template<_capture(_Base), _concept<!IS_VOID_<_Base>>>
+		//template<_capture<_Base>, _concept<!IS_VOID_<_Base>>>
 		inline _Base& operator* ()
 		{
 			//std::cout<<"A *\n";
 			return *object_;
 		}
 
-		//template<_capture(_Base), _concept<!IS_VOID_<_Base>>>
+		//template<_capture<_Base>, _concept<!IS_VOID_<_Base>>>
 		inline _Base const& operator* () const
 		{
 			//std::cout<<"A * c\n";

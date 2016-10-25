@@ -40,21 +40,27 @@ namespace x::debug
 	unsigned _FuncGroup<_Ret(_ArgTypes...)>::_CallHelper<_func>::_timesCalled = 0;
 
 
-
+	template<class _TimeUnit = std::chrono::microseconds>
 	class _Measure
 	{
-		x::timer<> timer_;
+		x::timer<_TimeUnit> timer_;
+
 	public:
+		static _Measure<_TimeUnit> performer;
+
 		template<typename _Lambda>
-		void operator=(_Lambda&& action)
+		auto operator->*(_Lambda&& procedure)
 		{
 			timer_.tic();
-			action();
-			std::cout << timer_.toc() << std::endl;
+			procedure();
+			return timer_.toc();
 		}
 	};
+
+	template<class _TimeUnit>
+	_Measure<_TimeUnit> _Measure<_TimeUnit>::performer = {};
 }
-#define measure x::debug::_Measure{} = [&]()
+#define measure x::debug::_Measure<>::performer ->* [&]()
 #define call_times(_nTimes,_func) _FuncGroup<decltype(_func)>::_CallHelper<_func>::_callMaxTimes<_nTimes>
 #define call_once(_func) call_times(1, _func)
 #define count_call(_func) _FuncGroup<decltype(_func)>::_CallHelper<_func, _nTimes>::_callMaxTimes

@@ -236,15 +236,17 @@
 #include "fn.h"
 
 
-class Event: enumed
+class Event
 {
 public:
 	Event() = delete;
-	Event(x::Callable<void()> const& action): typenum(),
+	Event(x::Callable<void()> const& action):
 		action_{action.copy()}
 	{}
 
+protected:
 	x::Callable<void()>* action_;
+
 public:	
 
 	virtual bool trigger() const abstract;
@@ -253,10 +255,6 @@ public:
 	{
 		action_->call();
 	}
-	virtual bool operator==(Event const& other)
-	{
-		return num==other.num;
-	}
 
 	template<typename EventType>
 	friend class EventHandler;
@@ -264,6 +262,43 @@ public:
 	virtual ~Event()
 	{
 		delete action_;
+	}
+};
+
+class DynamicEvent:
+	public Event
+{
+public:
+	DynamicEvent() = delete;
+	DynamicEvent(
+		x::Callable<void()> const& action,
+		x::Callable<bool()> const& trigger)
+		:
+		Event{action},
+		trigger_{trigger.copy()}
+	{
+	}
+
+	x::Callable<bool()>* trigger_;
+public:
+
+	virtual bool trigger() const override
+	{
+		return trigger_->call();
+	}
+	virtual void process()
+	{
+		if (trigger_->call()) {
+			action_->call();
+		}
+	}
+
+	template<typename EventType>
+	friend class EventHandler;
+
+	virtual ~DynamicEvent()
+	{
+		delete trigger_;
 	}
 };
 
@@ -319,12 +354,11 @@ enum class WKey
 	ScrollLock=VK_SCROLL	
 };
 
-class KeyEvent: public Event, enumed
+class KeyEvent: public Event
 {
 protected:
 	static const WKey DEF_KEY = WKey::Empty;
 	
-	WKey key;
 	bool pressed;
 	bool once;
 
@@ -332,127 +366,48 @@ public:
 	KeyEvent() = delete;
 
 	KeyEvent(
-		WKey key,
 		bool once,
-		x::Callable<void()> const& action): typenum(),
+		x::Callable<void()> const& action)
+		:
 		Event{action},
-		key{key}, pressed{false}, once{once}
+		pressed{false}, 
+		once{once}
 	{
 	}
-
-	/*template<typename F>
-	KeyEvent(
-		WKey key,
-		bool once,
-		F action) : typenum(),
-		Event{Fn<void()>{action}},
-		key{key}, pressed{false}, once{once}
-	{
-	}
-
-	template<typename T, typename F>
-	KeyEvent(
-		WKey key,
-		bool once,
-		T* obj,
-		F action): typenum(),
-		Event{Fn<void()>{obj,action}},
-		key{key}, pressed{false}, once{once}
-	{
-		static_assert(is_member_fn_ptr<F>::value,
-			"This KeyEvent constructor only accepts member function pointers.");
-	}*/
-
-
-	/*template<typename... S>
-	KeyEvent(
-	WKey key,
-	bool once,
-	S*... slot_fn) :
-	action{slot_fn...}, key{key}, pressed{false}, once{once}
-	{
-	static_assert(
-	all_true<std::is_base_of<_Slot<>, S>::value...>::value,
-	"This KeyEvent constructor only accepts pointers to Slots.");
-	}*/
 
 	KeyEvent& operator=(const KeyEvent& other)
 	{
 		if (action_) delete action_;
 		action_= other.action_->copy();
-		key = other.key;
+		//key = other.key;
 		pressed = other.pressed;
 		once = other.once;
 		return *this;
 	}
 
-	/*virtual bool operator==(Event const& other) override
-	{
-		try {
-			KeyEvent const& ke = typenum_cast<KeyEvent const&>(other);
-			return ke.key==key;
-		}
-		catch (std::bad_cast) {
-			return false;
-		}
-	}*/
-
-	/*virtual bool trigger() const override
-	{
-		return GetAsyncKeyState(key);
-	}*/
-
-	/*virtual void process() override
-	{
-		if (trigger()) {
-			if (!pressed) {
-				pressed = true;
-				emit action();
-			}
-			else if (!once)	emit action();
-		}
-		else if (pressed)
-			pressed = false;
-	}*/
-
-	inline operator WKey() const
+	/*inline operator WKey() const
 	{
 		return key;
-	}
+	}*/
 
 	template<typename EventType>
 	friend class EventHandler;
 };
 
-class KeyPressEvent: public KeyEvent, enumed
+class KeyPressEvent: public KeyEvent
 {
 public:
+	WKey key;
+
 	KeyPressEvent() = delete;
 
-	/*template<typename F>
 	KeyPressEvent(
 		WKey key,
 		bool once,
-		F fn) : typenum(),
-		KeyEvent{key,once,Fn<void()>{fn}}
-	{
-	}
-
-	template<typename T>
-	KeyPressEvent(
-		WKey key,
-		bool once,
-		T* obj,
-		void(T::*memberFn)()): typenum(),
-		KeyEvent{key,once,Fn<void()>{obj,memberFn}}
-	{
-	}*/
-
-	KeyPressEvent(
-		WKey key,
-		bool once,
-		x::Callable<void()> const& fn): typenum(),
-		KeyEvent{key,once, fn}
+		x::Callable<void()> const& fn)
+		:
+		KeyEvent{once, fn},
+		key{key}
 	{
 		//std::cout<<"e";
 	}
@@ -476,38 +431,21 @@ public:
 	}
 };
 
-class KeyReleaseEvent: public KeyEvent, enumed
+class KeyReleaseEvent: public KeyEvent
 {
 public:
+	WKey key;
+
 	KeyReleaseEvent() = delete;
 
-	/*template<typename F>
-	KeyReleaseEvent(
-		enable_if<!std::is_base_of<Callable<void()>, std::remove_reference_t<F>>::value,WKey> key,
-		bool once,
-		F fn) : 
-		typenum(),
-		KeyEvent{key,once,Fn<void()>{fn}}
-	{
-	}
-
-	template<typename T, typename F>
 	KeyReleaseEvent(
 		WKey key,
 		bool once,
-		T* obj,
-		void(T::*memberFn)()) : typenum(),
-		KeyEvent{key,once,Fn<void()>{obj,memberFn}}
+		x::Callable<void()> const& fn) 
+		: 
+		KeyEvent{once, fn},
+		key{key}
 	{
-	}
-*/
-	KeyReleaseEvent(
-		WKey key,
-		bool once,
-		x::Callable<void()> const& fn) : typenum(),
-		KeyEvent{key,once, fn}
-	{
-		//std::cout<<"e";
 	}
 
 	virtual bool trigger() const override
@@ -526,6 +464,46 @@ public:
 		}
 		else if (!pressed)
 			pressed = true;
+	}
+};
+
+class KeyCombinationEvent: public KeyEvent
+{
+public:
+	x::vector<WKey> keys;
+
+	KeyCombinationEvent() = delete;
+
+	KeyCombinationEvent(
+		std::initializer_list<WKey> keys,
+		bool once,
+		x::Callable<void()> const& fn)
+		:
+		KeyEvent{once, fn},
+		keys{keys}
+	{
+	}
+
+	virtual bool trigger() const override
+	{
+		for (auto key{keys.cbegin()}; key; ++key) {
+			if ( ! GetAsyncKeyState(int(*key)))
+				return false;
+		}
+		return true;
+	}
+
+	virtual void process() override
+	{
+		if (trigger()) {
+			if (!pressed) {
+				pressed = true;
+				action_->call();
+			}
+			else if (!once)	action_->call();
+		}
+		else if (pressed)
+			pressed = false;
 	}
 };
 
