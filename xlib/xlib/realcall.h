@@ -10,6 +10,8 @@
 #define _realcall_2(_obj, _fn) (x::deref(_obj).std::remove_cv_t<std::remove_pointer_t<std::remove_reference_t<decltype(_obj)>>> :: _fn)
 #define _realcall_1(_obj) (x::deref(_obj). std::remove_cv_t<std::remove_pointer_t<std::remove_reference_t<decltype(_obj)>>> :: operator())
 
+#define direct_call(...) realcall(__VA_ARGS__)
+
 #undef enable_if
 
 #endif //REALCALL_H

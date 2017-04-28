@@ -110,13 +110,13 @@ public:\
 	//////////////////////////////////////////////////////////////////////////////
 
 		template<typename T>
-	struct is_free_fn_ptr
+	struct is_free_func_ptr
 	{
 		static constexpr bool value = false;
 	};
 
 	template<typename R, typename... A>
-	struct is_free_fn_ptr<R(*)(A...)>
+	struct is_free_func_ptr<R(*)(A...)>
 	{
 		static constexpr bool value = true;
 	};
@@ -124,25 +124,39 @@ public:\
 	//////////////////////////////////////////////////////////////////////////////
 
 	template<typename T>
-	struct is_member_fn_ptr
+	struct is_member_func_ptr
 	{
 		static constexpr bool value = false;
 	};
 
 	template<typename R, typename T, typename... A>
-	struct is_member_fn_ptr<R(T::*)(A...)>
+	struct is_member_func_ptr<R(T::*)(A...)>
 	{
 		static constexpr bool value = true;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
 
-	template<typename T>
-	struct is_fn_ptr
+	/*template<typename T>
+	struct is_func_ptr
 	{
 		static constexpr bool value =
-			is_free_fn_ptr<T>::value ||
-			is_member_fn_ptr<T>::value;
+			is_free_func_ptr<T>::value ||
+			is_member_func_ptr<T>::value;
+	};*/
+
+	template<class>
+	struct is_func;
+
+	//////////////////////////////////////////////////////////////////////////////
+
+	template<class _Type>
+	struct is_callable
+	{
+		static constexpr bool value =
+			is_functor<_Type>::value ||
+			is_free_func_ptr<_Type>::value ||
+			std::is_function<_Type>::value;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -236,16 +250,16 @@ public:\
 		return sizeof...(A);
 	}
 
-	template<typename F>
-	unsigned argnum(F&&)
+	template<typename _Func>
+	unsigned argnum(_Func&&)
 	{
-		return argnum(&F::operator());
+		return argnum(&_Func::operator());
 	}
 
-	template<typename F>
+	template<typename _Func>
 	constexpr unsigned argnum()
 	{
-		return argnum(&F::operator());
+		return argnum(&_Func::operator());
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -596,23 +610,48 @@ public:\
 	//////////////////////////////////////////////////////////////////////////////
 
 	template<typename _Member>
-	struct _OwnerOf;
+	struct owner_of;
 
 	template<class _Owner, typename _Ret, typename... _Args>
-	struct _OwnerOf<_Ret(_Owner::*)(_Args...)>
+	struct owner_of<_Ret(_Owner::*)(_Args...)>
 	{
 		using type = _Owner;
 	};
 
-	template<class _Owner, typename _Ret, typename... _Args>
-	inline constexpr auto owner_off(_Ret(_Owner::*)(_Args...)) 
+	template<class _Owner, typename _Ret>
+	struct owner_of<_Ret(_Owner::*)>
 	{
-		return struct { 
-			using type = _Owner; 
-		};
-	}
+		using type = _Owner;
+	};
 
-#define owner_of(...) typename x::_OwnerOf<decltype(__VA_ARGS__)>::type
+	template<class _Member>
+	using owner_of_t = typename owner_of<_Member>::type;
+
+	template<class...>
+	struct function_type_of;
+
+	template<class _Owner, class _Ret, class... _Args>
+	struct function_type_of<_Ret(_Owner::*)(_Args...)>
+	{
+		using type = _Ret(_Args...);
+	};
+
+	template<class _Ret, class... _Args>
+	struct function_type_of<_Ret(*)(_Args...)>
+	{
+		using type = _Ret(_Args...);
+	};
+
+	template<class _Ret, class... _Args>
+	struct function_type_of<_Ret(_Args...)>
+	{
+		using type = _Ret(_Args...);
+	};
+
+	template<class _Member>
+	using function_type_of_t = typename function_type_of<_Member>::type;
+
+//#define owner_of(...) typename x::_OwnerOf<decltype(__VA_ARGS__)>::type
 
 	template<typename...>
 	struct _result;
@@ -632,10 +671,134 @@ public:\
 	template<class _Type>
 	using same_type = _Type;
 
+	//////////////////////////////////////////////////////////////////////////////
+
+	template<class _Type>
+	struct is_naked
+	{
+		static constexpr bool value = 
+			(std::is_fundamental<_Type>::value || std::is_class<_Type>::value) &&
+			!std::is_const<_Type>::value && !std::is_volatile<_Type>::value;
+	};
+
+	template<class _Outer>
+	using in_type = typename _Outer::type;
+
+	template<class _Outer>
+	using in_raw_type = typename _Outer::raw_type;
+
+	template<class _Type>
+	struct nested
+	{
+		using type = _Type;
+	};
+
+	template<class _Type>
+	struct naked
+	{
+		using raw_type = _Type;
+		using type = std::conditional_t<
+			is_naked<_Type>::value,
+			_Type, in_type<
+				std::conditional_t<is_naked<_Type>::value, 
+					nested<void>,
+					naked<std::remove_cv_t<std::remove_pointer_t<std::remove_reference_t<_Type>>>>
+				>
+			>
+		>;
+	};
+
+	template<class _Type>
+	using naked_t = typename naked<_Type>::type;
+
+	/*template<class _Type>
+	using naked = std::remove_cv_t<std::remove_pointer_t<std::remove_reference_t<_Type>>>;*/
+
+
+
+	//////////////////////////////////////////////////////////////////////////////
+
+	template<class _OnTrue, class _OnFalse>
+	struct StaticSelector
+	{
+		_OnTrue& onTrue;
+		_OnFalse& onFalse;
+
+		inline StaticSelector(
+			_OnTrue& onTrue,
+			_OnFalse& onFalse)
+			:
+			onTrue{onTrue},
+			onFalse{onFalse}
+		{
+		}
+
+		template<bool _cond>
+		__forceinline std::enable_if_t<_cond == true,
+			_OnTrue&> select() const
+		{
+			return onTrue;
+		}
+
+		template<bool _cond>
+		__forceinline std::enable_if_t<_cond == false,
+			_OnFalse&> select() const
+		{
+			return onFalse;
+		}
+	};
+
+
+	///////////////////////////////////////////////////////////////////////////////
+
+
+	template<class _Type, unsigned _dim>
+	struct multi_ptr
+	{
+		using type = typename multi_ptr<_Type, _dim - 1>::type*;
+	};
+
+	template<class _Type>
+	struct multi_ptr<_Type, 0>
+	{
+		using type = _Type;
+	};
+
+	template<class _Type, unsigned _dim>
+	using multi_ptr_t = typename multi_ptr<_Type, _dim>::type;
+
+	///////////////////////////////////////////////////////////////////////////////
+
+	/*template<class _Base, class _Der>
+	class is_virtual_base_of
+	{
+		template<class = void>
+		struct Derived: _Der
+		{
+		};
+
+		template<class = void>
+		struct VirtuallyDerived: virtual _Base, _Der
+		{
+		};
+
+		static constexpr Derived
+
+	public:
+		static constexpr bool value = 
+			std::is_base_of<_Base, _Der>::value && 
+			sizeof(Derived) == sizeof(VirtuallyDerived);
+	};*/
+
+	///////////////////////////////////////////////////////////////////////////////
+
 #define _result(_fn) x::_result<std::remove_pointer_t<decltype(_fn)>>::type
-#define _concept typename = std::enable_if_t
-#define _capture class _Type = x::same_type
+#define _concept class = std::enable_if_t
+#define _capture(_Type) class _Type = _Type
 #define _suspend template<class _Suspender = void>
+
+#define THIS_TYPE template<class=void> inline constexpr void __member__(){}\
+	using this_type = x::owner_of_t<decltype(&__member__<>)>;
 }
 
 #endif //MORE_TYPE_TRAITS_H

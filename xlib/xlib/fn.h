@@ -15,15 +15,16 @@ namespace x
 	template<typename...>
 	class Callable;
 
-	template<typename Ret, typename... Args>
-	class Callable<Ret(Args...)>
+	template<typename _Ret, typename... _Args>
+	class Callable<_Ret(_Args...)>
 	{
 	public:
 		enum ErrorNum { empty_fn };
 
-		virtual Callable<Ret(Args...)>* copy() const abstract;
-		virtual Ret call(Args...) const abstract;
-		virtual operator bool() const abstract;
+		virtual Callable<_Ret(_Args...)>* copy() const abstract;
+		virtual _Ret call(_Args...) const abstract;
+		//virtual _Ret except_call(_Args...) const abstract;
+		//virtual operator bool() const abstract;
 		virtual bool empty() const abstract;
 		//virtual void clear() abstract;
 	};
@@ -31,22 +32,22 @@ namespace x
 	template<typename...>
 	class Fn;
 
-	template<typename Ret, typename... Args>
-	class Fn<Ret(Args...)>: public Callable<Ret(Args...)>
+	template<typename _Ret, typename... _Args>
+	class Fn<_Ret(_Args...)>: public Callable<_Ret(_Args...)>
 	{
 		struct FnEraser_
 		{
-			virtual Ret operator()(Args...) const abstract;
+			virtual _Ret operator()(_Args&&...) const abstract;
 			virtual FnEraser_* copy() const abstract;
 		};
 
 		template<typename...>
 		struct FnConcrete_;
 
-		template<typename F>
-		struct FnConcrete_<F> final: public FnEraser_
+		template<typename _Func>
+		struct FnConcrete_<_Func> final: public FnEraser_
 		{
-			mutable F fn;
+			mutable _Func fn;
 
 			template<typename G>
 			FnConcrete_(G&& fn):
@@ -54,22 +55,22 @@ namespace x
 			{
 			}
 
-			Ret operator()(Args... args) const final override
+			_Ret operator()(_Args&&... args) const final override
 			{
-				return (Ret)fn(args...);
+				return (_Ret)fn(args...);
 			}
 
 			FnEraser_* copy() const final override
 			{
-				return new FnConcrete_<F>{fn};
+				return new FnConcrete_<_Func>{fn};
 			}
 		};
 
-		template<class T, typename F>
-		struct FnConcrete_<T, F> final: public FnEraser_
+		template<class T, typename _Func>
+		struct FnConcrete_<T, _Func> final: public FnEraser_
 		{
 			mutable T* obj;
-			mutable F fn;
+			mutable _Func fn;
 
 			template<typename G>
 			FnConcrete_(T* obj, G&& fn):
@@ -78,14 +79,14 @@ namespace x
 			{
 			}
 
-			Ret operator()(Args... args) const final override
+			_Ret operator()(_Args... args) const final override
 			{
-				return (Ret)(obj->*fn)(args...);
+				return (_Ret)(obj->*fn)(args...);
 			}
 
 			FnEraser_* copy() const final override
 			{
-				return new FnConcrete_<T, F>{obj,fn};
+				return new FnConcrete_<T, _Func>{obj,fn};
 			}
 		};
 
@@ -97,44 +98,115 @@ namespace x
 		{
 		}
 
-		template<typename F, typename = enable_if<!std::is_same<decay<F>, Fn<Ret(Args...)>>::value>>
-		Fn(F&& fn) :
-			fn_{new FnConcrete_<decay<F>>{std::forward<F>(fn)}}
+		template<typename _Func, typename = enable_if<!std::is_same<decay<_Func>, Fn<_Ret(_Args...)>>::value>>
+		Fn(_Func&& fn) :
+			fn_{new FnConcrete_<decay<_Func>>{std::forward<_Func>(fn)}}
 		{
 		}
 
-		template<typename T, typename F, typename = enable_if<!std::is_same<decay<F>, Fn<Ret(Args...)>>::value>>
-		Fn(T* obj, F&& fn) :
-			fn_{new FnConcrete_<T,decay<F>>{obj,std::forward<F>(fn)}}
+		template<typename T, typename _Func, typename = enable_if<!std::is_same<decay<_Func>, Fn<_Ret(_Args...)>>::value>>
+		Fn(T* obj, _Func&& fn) :
+			fn_{new FnConcrete_<T,decay<_Func>>{obj,std::forward<_Func>(fn)}}
 		{
 		}
 
-		Fn(Fn<Ret(Args...)> const& other):
+		Fn(Fn<_Ret(_Args...)> const& other):
 			fn_{other.fn_ ? other.fn_->copy() : nullptr}
 		{ }
 
-		Fn<Ret(Args...)>& operator=(Fn<Ret(Args...)> const& other)
+		Fn<_Ret(_Args...)>& operator=(Fn<_Ret(_Args...)> const& other)
 		{
 			if (fn_) delete fn_;
 			fn_ = other.fn_->copy();
 			return *this;
 		}
 
-		Callable<Ret(Args...)>* copy() const override
+		Callable<_Ret(_Args...)>* copy() const override
 		{
-			return new Fn<Ret(Args...)>{*this};
+			return new Fn<_Ret(_Args...)>{*this};
 		}
 
-		template<typename F>
-		void set(F&& fn)
+		template<typename _Func>
+		void set(_Func&& fn)
 		{
 			if (fn_) delete fn_;
-			fn_ = new FnConcrete_<decay<F>>{std::forward<F>(fn)};
+			fn_ = new FnConcrete_<decay<_Func>>{std::forward<_Func>(fn)};
 		}
 
-		__forceinline Ret operator()(Args... args) const
+		__forceinline _Ret operator()(_Args... args) const
 		{
-			return (Ret)(*fn_)(std::forward<Args>(args)...);
+			return (_Ret)(*fn_)((std::remove_reference_t<_Args>&&)args...);
+		}
+
+		__forceinline operator bool() const
+		{
+			return fn_ != nullptr;
+		}
+
+		__forceinline bool empty() const
+		{
+			return fn_ == nullptr;
+		}
+
+		virtual _Ret call(_Args... args) const final override
+		{
+			//if (fn_)
+				return (_Ret)(*fn_)(std::forward<_Args>(args)...);
+			//else
+				//throw error<Fn<_Ret(_Args...)>>{"Function is empty."};
+		}
+
+		~Fn()
+		{
+			if (fn_)
+				delete fn_;
+		}
+	};
+
+	template<class...>
+	class _Function;
+
+	template<class _Func, class _DeclRet, class... _DeclArgs>
+	class _Function<_Func, _DeclRet(_DeclArgs...)>
+	{
+		_Func* fn_;
+
+	public:
+		_Function():
+			fn_{nullptr}
+		{
+		}
+
+		_Function(_Func& fn) :
+			fn_{x::pointer(fn)}
+		{
+		}
+
+		_Function(_Function<_Func> const& other):
+			fn_{other.fn_}
+		{
+		}
+
+		_Function<_Func>& operator=(_Function<_Func> const& other)
+		{
+			fn_ = other.fn_;
+			return *this;
+		}
+
+		_Function<_Func>* copy() const
+		{
+			return new _Function<_Func>{*this};
+		}
+
+		template<typename _Func>
+		void set(_Func&& fn)
+		{
+			fn_ = x::pointer(fn);
+		}
+
+		virtual _DeclRet operator()(_DeclArgs... args) const
+		{
+			return (*fn_)(std::forward<_DeclArgs>(args)...);
 		}
 
 		__forceinline operator bool() const
@@ -147,36 +219,43 @@ namespace x
 			return !(bool)fn_;
 		}
 
-		virtual Ret call(Args... args) const final override
+		
+		~_Function()
 		{
-			if (fn_)
-				return (Ret)(*fn_)(std::forward<Args>(args)...);
-			else
-				throw error<Fn<Ret(Args...)>>{empty_fn, "Function is empty."};
-		}
-
-		/*void clear()
-		{
-			if (fn_) {
-				delete fn_;
-				fn_ = nullptr;
-			}
-		}*/
-
-		~Fn()
-		{
-			if (fn_)
-				delete fn_;
+			
 		}
 	};
 
-	template<class Owner, typename Ret, typename... Args>
-	class Fn<Owner, Ret(Args...)>: public Callable<Ret(Args...)>
+	/*template<class _Func, class... _Rest>
+	_Function<x::naked<_Func>, _Rest...> func(_Func&&);*/
+
+	/*template<class...>
+	void func();*/
+	template<class...>
+	struct _FuncFactory;
+
+	template<class _Ret, class... _Args, class _Func>
+	struct _FuncFactory<_Ret(_Args...), _Func>
 	{
-		using FnType_ = Ret(Owner::*)(Args...);
+		__forceinline static _Function<x::naked<_Func>, _Ret(_Args...)> create(_Func&& func)
+		{
+			return _Function<x::naked<_Func>, _Ret(_Args...)>{func};
+		}
+	};
+
+	/*template<class _DeclFunc, class _Func>
+	__forceinline auto func(_Func&& func)
+	{
+		return _FuncFactory<_DeclFunc, _Func>::create(std::forward<_Func>(func));
+	}*/
+
+	template<class _Owner, typename _Ret, typename... _Args>
+	class Fn<_Owner, _Ret(_Args...)>: public Callable<_Ret(_Args...)>
+	{
+		using FnType_ = _Ret(_Owner::*)(_Args...);
 
 		FnType_ fn_;
-		mutable Owner* obj_;
+		mutable _Owner* obj_;
 
 	public:
 		Fn():
@@ -185,37 +264,37 @@ namespace x
 		{
 		}
 
-		Fn(Owner* obj, FnType_ fn):
+		Fn(_Owner* obj, FnType_ fn):
 			fn_{fn},
 			obj_{obj}
 		{
 		}
 
-		Fn(Fn<Owner, Ret(Args...)> const& other):
+		Fn(Fn<_Owner, _Ret(_Args...)> const& other):
 			fn_{other.fn_},
 			obj_{other.obj_}
 		{ }
 
-		Fn<Owner, Ret(Args...)>& operator=(Fn<Owner, Ret(Args...)> const& other)
+		Fn<_Owner, _Ret(_Args...)>& operator=(Fn<_Owner, _Ret(_Args...)> const& other)
 		{
 			fn_ = other.fn_->copy();
 			return *this;
 		}
 
-		Callable<Ret(Args...)>* copy() const override
+		Callable<_Ret(_Args...)>* copy() const override
 		{
-			return new Fn<Owner, Ret(Args...)>{*this};
+			return new Fn<_Owner, _Ret(_Args...)>{*this};
 		}
 
-		void set(Owner* obj, FnType_ fn)
+		void set(_Owner* obj, FnType_ fn)
 		{
 			fn_ = fn;
 			obj_ = obj;
 		}
 
-		__forceinline Ret operator()(Args... args) const
+		__forceinline _Ret operator()(_Args... args) const
 		{
-			return (Ret)(obj_->*fn_)(std::forward<Args>(args)...);
+			return (_Ret)(obj_->*fn_)(std::forward<_Args>(args)...);
 		}
 
 		__forceinline operator bool() const
@@ -228,12 +307,12 @@ namespace x
 			return !(bool)fn_ || !(bool)obj_;
 		}
 
-		virtual Ret call(Args... args) const final override
+		virtual _Ret call(_Args... args) const final override
 		{
 			if (fn_ && obj_)
-				return (Ret)(obj_->*fn_)(std::forward<Args>(args)...);
+				return (_Ret)(obj_->*fn_)(std::forward<_Args>(args)...);
 			else
-				throw error<Fn<Owner, Ret(Args...)>>{empty_fn, "Function is empty."};
+				throw error<Fn<_Owner, _Ret(_Args...)>>{"Function is empty."};
 		}
 
 		/*void clear()
@@ -247,11 +326,11 @@ namespace x
 		}
 	};
 
-	template<typename Ret, typename... Args>
-	class Fn<Ret(*)(Args...)>: public Callable<Ret(Args...)>
+	template<typename _Ret, typename... _Args>
+	class Fn<_Ret(*)(_Args...)>: public Callable<_Ret(_Args...)>
 	{
 	public:
-		using FnType_ = Ret(*)(Args...);
+		using FnType_ = _Ret(*)(_Args...);
 
 		FnType_ fn_;
 
@@ -266,19 +345,19 @@ namespace x
 		{
 		}
 
-		Fn(Fn<Ret(*)(Args...)> const& other):
+		Fn(Fn<_Ret(*)(_Args...)> const& other):
 			fn_{other.fn_}
 		{ }
 
-		Fn<Ret(*)(Args...)>& operator=(Fn<Ret(*)(Args...)> const& other)
+		Fn<_Ret(*)(_Args...)>& operator=(Fn<_Ret(*)(_Args...)> const& other)
 		{
 			fn_ = other.fn_->copy();
 			return *this;
 		}
 
-		Callable<Ret(Args...)>* copy() const override
+		Callable<_Ret(_Args...)>* copy() const override
 		{
-			return new Fn<Ret(*)(Args...)>{*this};
+			return new Fn<_Ret(*)(_Args...)>{*this};
 		}
 
 		void set(FnType_ fn)
@@ -286,9 +365,9 @@ namespace x
 			fn_ = fn;
 		}
 
-		__forceinline Ret operator()(Args... args) const
+		__forceinline _Ret operator()(_Args... args) const
 		{
-			return (Ret)(*fn_)(std::forward<Args>(args)...);
+			return (_Ret)(*fn_)(std::forward<_Args>(args)...);
 		}
 
 		__forceinline operator bool() const
@@ -301,12 +380,12 @@ namespace x
 			return !(bool)fn_;
 		}
 
-		virtual Ret call(Args... args) const final override
+		virtual _Ret call(_Args... args) const final override
 		{
 			if (fn_)
-				return (Ret)(*fn_)(std::forward<Args>(args)...);
+				return (_Ret)(*fn_)(std::forward<_Args>(args)...);
 			else
-				throw error<Fn<Ret(*)(Args...)>>{empty_fn, "Function is empty."};
+				throw error<Fn<_Ret(*)(_Args...)>>{"Function is empty."};
 		}
 
 		/*void clear()
@@ -324,53 +403,53 @@ namespace x
 	template<typename...>
 	class FnCall;
 
-	template<typename Ret, typename... Args>
-	class FnCall<Ret(Args...)>: public Callable<Ret()>
+	template<typename _Ret, typename... _Args>
+	class FnCall<_Ret(_Args...)>: public Callable<_Ret()>
 	{
 	public:
-		static constexpr unsigned size = sizeof...(Args);
+		static constexpr unsigned size = sizeof...(_Args);
 	private:
-		using FnPtr_ = Ret(*)(Args...);
+		using FnPtr_ = _Ret(*)(_Args...);
 
 		FnPtr_ fn_;
-		mutable x::va::pack<Args...> args_;
+		mutable x::va::pack<_Args...> args_;
 
 		template<int... I>
-		__forceinline Ret expandArgs_(seq<I...>&) const
+		__forceinline _Ret expandArgs_(seq<I...>&) const
 		{
-			return (Ret)fn_(args_.get<I>()...);
+			return (_Ret)fn_(args_.get<I>()...);
 		}
 
 	public:
 		FnCall() = delete;
 
-		FnCall(FnPtr_ fn, Args&&... args):
-			args_{std::forward<Args>(args)...},
+		FnCall(FnPtr_ fn, _Args&&... args):
+			args_{std::forward<_Args>(args)...},
 			fn_{fn}
 		{
 		}
 
-		FnCall(FnCall<Ret(Args...)> const& other):
+		FnCall(FnCall<_Ret(_Args...)> const& other):
 			fn_{other.fn_},
 			args_{other.args_}
 		{
 		}
 
-		virtual Callable<Ret()>* copy() const override
+		virtual Callable<_Ret()>* copy() const override
 		{
-			return new FnCall<Ret(Args...)>{*this};
+			return new FnCall<_Ret(_Args...)>{*this};
 		}
 
-		virtual Ret call() const override
+		virtual _Ret call() const override
 		{
 			if (fn_)
-				return (Ret)expandArgs_(gen_seq<size>{});
+				return (_Ret)expandArgs_(gen_seq<size>{});
 			else
-				throw error<FnCall<Ret(Args...)>>{empty_fn, "Function is empty."};
+				throw error<FnCall<_Ret(_Args...)>>{"Function is empty."};
 
 		}
 
-		virtual operator bool() const override
+		__forceinline operator bool() const
 		{
 			return fn_;
 		}
@@ -385,20 +464,20 @@ namespace x
 		//	//for (int i = 0; i<size; ++i) delete args_[i];
 		//}
 
-		__forceinline Ret operator()() const
+		__forceinline _Ret operator()() const
 		{
-			return (Ret)expandArgs_(gen_seq<size>{});
+			return (_Ret)expandArgs_(gen_seq<size>{});
 		}
 
 	};
 
-	//template<typename Ret, typename... Args>
-	//class FnCall<Ret(Args...)>: public Callable<Ret()>
+	//template<typename _Ret, typename... _Args>
+	//class FnCall<_Ret(_Args...)>: public Callable<_Ret()>
 	//{
 	//public:
-	//	static constexpr unsigned size = sizeof...(Args);
+	//	static constexpr unsigned size = sizeof...(_Args);
 	//private:
-	//	using FnPtr_ = Ret(*)(Args...);
+	//	using FnPtr_ = _Ret(*)(_Args...);
 	//	class ArgEraser_ 
 	//	{
 	//	public:
@@ -425,29 +504,29 @@ namespace x
 	//	ArgEraser_* args_[size];
 	//
 	//	template<int... i>
-	//	__forceinline Ret expandArgs_(x::seq<i...>&) const
+	//	__forceinline _Ret expandArgs_(x::seq<i...>&) const
 	//	{
-	//		return (Ret)fn_(static_cast<ArgConcrete_<x::select_t<i+1, Args...>>*>(args_[i])->value...);
+	//		return (_Ret)fn_(static_cast<ArgConcrete_<x::select_t<i+1, _Args...>>*>(args_[i])->value...);
 	//	}
 	//
 	//public:
-	//	FnCall(FnPtr_ fn, Args const&... args):
-	//		args_{(new ArgConcrete_<Args>{args})...},
+	//	FnCall(FnPtr_ fn, _Args const&... args):
+	//		args_{(new ArgConcrete_<_Args>{args})...},
 	//		fn_{fn}
 	//	{
 	//	}
 	//
-	//	virtual Callable<Ret()>* copy() const override
+	//	virtual Callable<_Ret()>* copy() const override
 	//	{
-	//		return new FnCall<Ret(Args...)>{*this};
+	//		return new FnCall<_Ret(_Args...)>{*this};
 	//	}
 	//
-	//	virtual Ret call() const override
+	//	virtual _Ret call() const override
 	//	{
 	//		if (fn_)
-	//			return (Ret)expandArgs_(gen_seq<size>{});
+	//			return (_Ret)expandArgs_(gen_seq<size>{});
 	//		else
-	//			throw x::error<FnCall<Ret(Args...)>>{empty_fn, "Function is empty."};
+	//			throw x::error<FnCall<_Ret(_Args...)>>{empty_fn, "Function is empty."};
 	//
 	//	}
 	//
@@ -466,20 +545,20 @@ namespace x
 	//		for (int i = 0; i<size; ++i) delete args_[i];
 	//	}
 	//
-	//	__forceinline Ret operator()() const
+	//	__forceinline _Ret operator()() const
 	//	{
-	//		return (Ret)expandArgs_(gen_seq<size>{});
+	//		return (_Ret)expandArgs_(gen_seq<size>{});
 	//	}
 	//
 	//};
 
-	template<class C, typename Ret, typename... Args>
-	class FnCall<C, Ret(Args...)>: public Callable<Ret()>
+	template<class C, typename _Ret, typename... _Args>
+	class FnCall<C, _Ret(_Args...)>: public Callable<_Ret()>
 	{
 	public:
-		static constexpr unsigned size = sizeof...(Args);
+		static constexpr unsigned size = sizeof...(_Args);
 	private:
-		using FnPtr_ = Ret(C::*)(Args...);
+		using FnPtr_ = _Ret(C::*)(_Args...);
 		/*class ArgEraser_ {};
 
 		template<typename T>
@@ -496,48 +575,48 @@ namespace x
 
 		mutable C* obj_;
 		FnPtr_ fn_;
-		mutable x::va::pack<Args...> args_;
+		mutable x::va::pack<_Args...> args_;
 		//ArgEraser_* args_[size];
 
 		template<int... I>
-		__forceinline Ret expandArgs_(seq<I...>&) const
+		__forceinline _Ret expandArgs_(seq<I...>&) const
 		{
-			return (Ret)(obj_->*fn_)(args_.get<I>()...);
-			//return (Ret)(obj_->*fn_)(static_cast<ArgConcrete_<x::select_t<I+1, Args...>>*>(args_[I])->value...);
+			return (_Ret)(obj_->*fn_)(args_.get<I>()...);
+			//return (_Ret)(obj_->*fn_)(static_cast<ArgConcrete_<x::select_t<I+1, _Args...>>*>(args_[I])->value...);
 		}
 
 	public:
 		FnCall() = delete;
 
-		FnCall(C* obj, FnPtr_ fn, Args&&... args):
-			args_{std::forward<Args>(args)...},
+		FnCall(C* obj, FnPtr_ fn, _Args&&... args):
+			args_{std::forward<_Args>(args)...},
 			obj_{obj},
 			fn_{fn}
 		{
 		}
 
-		FnCall(FnCall<C, Ret(Args...)> const& other):
+		FnCall(FnCall<C, _Ret(_Args...)> const& other):
 			obj_{other.obj_},
 			fn_{other.fn_},
 			args_{other.args_}
 		{
 		}
 
-		virtual Callable<Ret()>* copy() const override
+		virtual Callable<_Ret()>* copy() const override
 		{
-			return new FnCall<C, Ret(Args...)>{*this};
+			return new FnCall<C, _Ret(_Args...)>{*this};
 		}
 
-		virtual Ret call() const override
+		virtual _Ret call() const override
 		{
 			if (fn_)
-				return (Ret)expandArgs_(gen_seq<size>{});
+				return (_Ret)expandArgs_(gen_seq<size>{});
 			else
-				throw error<FnCall<C, Ret(Args...)>>{empty_fn, "Function is empty."};
+				throw error<FnCall<C, _Ret(_Args...)>>{"Function is empty."};
 
 		}
 
-		virtual operator bool() const override
+		__forceinline operator bool() const
 		{
 			return fn_;
 		}
@@ -552,18 +631,18 @@ namespace x
 			for (int i = 0; i<size; ++i) delete args_[i];
 		}*/
 
-		__forceinline Ret operator()() const
+		__forceinline _Ret operator()() const
 		{
-			return (Ret)expandArgs_(gen_seq<size>{});
+			return (_Ret)expandArgs_(gen_seq<size>{});
 		}
 
 	};
 
-	template<typename Ret, typename... Args>
-	class FnCall<Fn<Ret(Args...)>>: public Callable<Ret()>
+	template<typename _Ret, typename... _Args>
+	class FnCall<Fn<_Ret(_Args...)>>: public Callable<_Ret()>
 	{
 	public:
-		static constexpr unsigned size = sizeof...(Args);
+		static constexpr unsigned size = sizeof...(_Args);
 	private:
 		/*class ArgEraser_ {};
 
@@ -578,47 +657,47 @@ namespace x
 			}
 		};*/
 
-		Fn<Ret(Args...)> fn_;
-		mutable x::va::pack<Args...> args_;
+		Fn<_Ret(_Args...)> fn_;
+		mutable x::va::pack<_Args...> args_;
 		//ArgEraser_* args_[size];
 
 		template<int... I>
-		__forceinline Ret expandArgs_(seq<I...>&) const
+		__forceinline _Ret expandArgs_(seq<I...>&) const
 		{
-			return (Ret)fn_(args_.get<I>()...);
-			//return (Ret)fn_(static_cast<ArgConcrete_<x::select_t<I+1, Args...>>*>(args_[I])->value...);
+			return (_Ret)fn_(args_.get<I>()...);
+			//return (_Ret)fn_(static_cast<ArgConcrete_<x::select_t<I+1, _Args...>>*>(args_[I])->value...);
 		}
 
 	public:
 		FnCall() = delete;
 
-		FnCall(Fn<Ret(Args...)> const& fn, Args&&... args):
-			args_{std::forward<Args>(args)...},
+		FnCall(Fn<_Ret(_Args...)> const& fn, _Args&&... args):
+			args_{std::forward<_Args>(args)...},
 			fn_{fn}
 		{
 		}
 
-		FnCall(FnCall<Fn<Ret(Args...)>> const& other):
+		FnCall(FnCall<Fn<_Ret(_Args...)>> const& other):
 			fn_{other.fn_},
 			args_{other.args_}
 		{
 		}
 
-		virtual Callable<Ret()>* copy() const override
+		virtual Callable<_Ret()>* copy() const override
 		{
-			return new FnCall<Fn<Ret(Args...)>>{*this};
+			return new FnCall<Fn<_Ret(_Args...)>>{*this};
 		}
 
-		virtual Ret call() const override
+		virtual _Ret call() const override
 		{
 			if (fn_)
-				return (Ret)expandArgs_(gen_seq<size>{});
+				return (_Ret)expandArgs_(gen_seq<size>{});
 			else
-				throw error<FnCall<Fn<Ret(Args...)>>>{empty_fn, "Function is empty."};
+				throw error<FnCall<Fn<_Ret(_Args...)>>>{"Function is empty."};
 
 		}
 
-		virtual operator bool() const override
+		__forceinline operator bool() const
 		{
 			return fn_;
 		}
@@ -633,9 +712,9 @@ namespace x
 			for (int i = 0; i<size; ++i) delete args_[i];
 		}*/
 
-		__forceinline Ret operator()() const
+		__forceinline _Ret operator()() const
 		{
-			return (Ret)expandArgs_(gen_seq<size>{});
+			return (_Ret)expandArgs_(gen_seq<size>{});
 		}
 	};
 }
@@ -657,14 +736,14 @@ namespace x
 //#define enable_if std::enable_if_t
 //#define decay std::decay_t
 //
-//template<typename... Args>
+//template<typename... _Args>
 //class Callable
 //{
 //public:
 //	enum ErrorNum { empty_fn };
 //
-//	virtual Callable<Args...>* copy() const abstract;
-//	virtual void call(Args...) abstract;
+//	virtual Callable<_Args...>* copy() const abstract;
+//	virtual void call(_Args...) abstract;
 //	virtual operator bool() const abstract;
 //	virtual bool empty() const abstract;
 //	virtual void clear() abstract;
@@ -673,22 +752,22 @@ namespace x
 //template<typename...>
 //class Fn;
 //
-//template<typename Ret, typename... Args>
-//class Fn<Ret(Args...)>: public Callable<Args...>
+//template<typename _Ret, typename... _Args>
+//class Fn<_Ret(_Args...)>: public Callable<_Args...>
 //{
 //	struct FnEraser_
 //	{
-//		virtual Ret operator()(Args...) const abstract;
+//		virtual _Ret operator()(_Args...) const abstract;
 //		virtual FnEraser_* virtual_copy() const abstract;
 //	};
 //
 //	template<typename...>
 //	struct FnConcrete_;
 //
-//	template<typename F>
-//	struct FnConcrete_<F> final: public FnEraser_
+//	template<typename _Func>
+//	struct FnConcrete_<_Func> final: public FnEraser_
 //	{
-//		F fn;
+//		_Func fn;
 //
 //		template<typename G>
 //		FnConcrete_(G&& fn): 
@@ -696,22 +775,22 @@ namespace x
 //		{
 //		}
 //
-//		Ret operator()(Args... args) const final override
+//		_Ret operator()(_Args... args) const final override
 //		{
-//			return (Ret)fn(args...);
+//			return (_Ret)fn(args...);
 //		}
 //
 //		FnEraser_* virtual_copy() const final override
 //		{
-//			return new FnConcrete_<F>{fn};
+//			return new FnConcrete_<_Func>{fn};
 //		}
 //	};
 //
-//	template<class T, typename F>
-//	struct FnConcrete_<T,F> final: public FnEraser_
+//	template<class T, typename _Func>
+//	struct FnConcrete_<T,_Func> final: public FnEraser_
 //	{
 //		T* obj;
-//		F fn;
+//		_Func fn;
 //
 //		template<typename G>
 //		FnConcrete_(T* obj, G&& fn): 
@@ -720,14 +799,14 @@ namespace x
 //		{
 //		}
 //
-//		Ret operator()(Args... args) const final override
+//		_Ret operator()(_Args... args) const final override
 //		{
-//			return (Ret)(obj->*fn)(args...);
+//			return (_Ret)(obj->*fn)(args...);
 //		}
 //
 //		FnEraser_* virtual_copy() const final override
 //		{
-//			return new FnConcrete_<T,F>{obj,fn};
+//			return new FnConcrete_<T,_Func>{obj,fn};
 //		}
 //	};
 //
@@ -739,44 +818,44 @@ namespace x
 //	{
 //	}
 //
-//	template<typename F, typename = enable_if<!std::is_same<decay<F>, Fn<Ret(Args...)>>::value>>
-//	Fn(F&& fn) :
-//		fn_{new FnConcrete_<decay<F>>{std::forward<F>(fn)}}
+//	template<typename _Func, typename = enable_if<!std::is_same<decay<_Func>, Fn<_Ret(_Args...)>>::value>>
+//	Fn(_Func&& fn) :
+//		fn_{new FnConcrete_<decay<_Func>>{std::forward<_Func>(fn)}}
 //	{
 //	}
 //
-//	template<typename T, typename F, typename = enable_if<!std::is_same<decay<F>, Fn<Ret(Args...)>>::value>>
-//	Fn(T* obj, F&& fn) :
-//		fn_{new FnConcrete_<T,decay<F>>{obj,std::forward<F>(fn)}}
+//	template<typename T, typename _Func, typename = enable_if<!std::is_same<decay<_Func>, Fn<_Ret(_Args...)>>::value>>
+//	Fn(T* obj, _Func&& fn) :
+//		fn_{new FnConcrete_<T,decay<_Func>>{obj,std::forward<_Func>(fn)}}
 //	{
 //	}
 //
-//	Fn(Fn<Ret(Args...)> const& other):
+//	Fn(Fn<_Ret(_Args...)> const& other):
 //		fn_{other.fn_ ? other.fn_->virtual_copy() : nullptr}
 //	{ }
 //
-//	Fn<Ret(Args...)>& operator=(Fn<Ret(Args...)> const& other)
+//	Fn<_Ret(_Args...)>& operator=(Fn<_Ret(_Args...)> const& other)
 //	{
 //		if (fn_) delete fn_;
 //		fn_ = other.fn_->virtual_copy();
 //		return *this;
 //	}
 //
-//	Callable<Args...>* copy() const override
+//	Callable<_Args...>* copy() const override
 //	{
-//		return new Fn<Ret(Args...)>{*this};
+//		return new Fn<_Ret(_Args...)>{*this};
 //	}
 //
-//	template<typename F>
-//	void set(F&& fn)
+//	template<typename _Func>
+//	void set(_Func&& fn)
 //	{
 //		if (fn_) delete fn_;
-//		fn_ = new FnConcrete_<decay<F>>{std::forward<F>(fn)};
+//		fn_ = new FnConcrete_<decay<_Func>>{std::forward<_Func>(fn)};
 //	}
 //
-//	__forceinline Ret operator()(Args... args)
+//	__forceinline _Ret operator()(_Args... args)
 //	{
-//		/*return */(Ret)(*fn_)(std::forward<Args>(args)...);
+//		/*return */(_Ret)(*fn_)(std::forward<_Args>(args)...);
 //	}
 //
 //	__forceinline operator bool() const
@@ -789,12 +868,12 @@ namespace x
 //		return !(bool)fn_;
 //	}
 //
-//	virtual void call(Args... args) final override
+//	virtual void call(_Args... args) final override
 //	{
 //		if (fn_)
-//			return (Ret)(*fn_)(std::forward<Args>(args)...);
+//			return (_Ret)(*fn_)(std::forward<_Args>(args)...);
 //		else
-//			throw x::error<Fn<Ret(Args...)>>{empty_fn, "Function is empty."};
+//			throw x::error<Fn<_Ret(_Args...)>>{empty_fn, "Function is empty."};
 //	}
 //
 //	void clear()
@@ -811,10 +890,10 @@ namespace x
 //	}
 //};
 //
-//template<class T, typename Ret, typename... Args>
-//class Fn<T,Ret(Args...)>: public Callable<Args...>
+//template<class T, typename _Ret, typename... _Args>
+//class Fn<T,_Ret(_Args...)>: public Callable<_Args...>
 //{
-//	using FnType_ = Ret(T::*)(Args...);
+//	using FnType_ = _Ret(T::*)(_Args...);
 //
 //	FnType_ fn_;
 //	mutable T* obj_;
@@ -832,20 +911,20 @@ namespace x
 //	{
 //	}
 //
-//	Fn(Fn<T, Ret(Args...)> const& other):
+//	Fn(Fn<T, _Ret(_Args...)> const& other):
 //		fn_{other.fn_},
 //		obj_{other.obj_}
 //	{ }
 //
-//	Fn<T,Ret(Args...)>& operator=(Fn<T,Ret(Args...)> const& other)
+//	Fn<T,_Ret(_Args...)>& operator=(Fn<T,_Ret(_Args...)> const& other)
 //	{
 //		fn_ = other.fn_->virtual_copy();
 //		return *this;
 //	}
 //
-//	Callable<Args...>* copy() const override
+//	Callable<_Args...>* copy() const override
 //	{
-//		return new Fn<T,Ret(Args...)>{*this};
+//		return new Fn<T,_Ret(_Args...)>{*this};
 //	}
 //
 //	void set(T* obj, FnType_ fn)
@@ -854,9 +933,9 @@ namespace x
 //		obj_ = obj;
 //	}
 //
-//	__forceinline Ret operator()(Args... args)
+//	__forceinline _Ret operator()(_Args... args)
 //	{
-//		return (Ret)(obj_->*fn_)(std::forward<Args>(args)...);
+//		return (_Ret)(obj_->*fn_)(std::forward<_Args>(args)...);
 //	}
 //
 //	__forceinline operator bool() const
@@ -869,12 +948,12 @@ namespace x
 //		return !(bool)fn_ || !(bool)obj_;
 //	}
 //
-//	virtual void call(Args... args) final override
+//	virtual void call(_Args... args) final override
 //	{
 //		if (fn_ && obj_)
-//			return (Ret)(obj_->*fn_)(std::forward<Args>(args)...);
+//			return (_Ret)(obj_->*fn_)(std::forward<_Args>(args)...);
 //		else
-//			throw x::error<Fn<T,Ret(Args...)>>{empty_fn, "Function is empty."};
+//			throw x::error<Fn<T,_Ret(_Args...)>>{empty_fn, "Function is empty."};
 //	}
 //
 //	void clear()
@@ -888,10 +967,10 @@ namespace x
 //	}
 //};
 //
-//template<typename Ret, typename... Args>
-//class Fn<Ret(*)(Args...)>: public Callable<Args...>
+//template<typename _Ret, typename... _Args>
+//class Fn<_Ret(*)(_Args...)>: public Callable<_Args...>
 //{
-//	using FnType_ = Ret(*)(Args...);
+//	using FnType_ = _Ret(*)(_Args...);
 //
 //	FnType_ fn_;
 //
@@ -906,19 +985,19 @@ namespace x
 //	{
 //	}
 //
-//	Fn(Fn<Ret(*)(Args...)> const& other):
+//	Fn(Fn<_Ret(*)(_Args...)> const& other):
 //		fn_{other.fn_}
 //	{ }
 //
-//	Fn<Ret(*)(Args...)>& operator=(Fn<Ret(*)(Args...)> const& other)
+//	Fn<_Ret(*)(_Args...)>& operator=(Fn<_Ret(*)(_Args...)> const& other)
 //	{
 //		fn_ = other.fn_->virtual_copy();
 //		return *this;
 //	}
 //
-//	Callable<Args...>* copy() const override
+//	Callable<_Args...>* copy() const override
 //	{
-//		return new Fn<Ret(*)(Args...)>{*this};
+//		return new Fn<_Ret(*)(_Args...)>{*this};
 //	}
 //
 //	void set(FnType_ fn)
@@ -926,9 +1005,9 @@ namespace x
 //		fn_ = fn;
 //	}
 //
-//	__forceinline Ret operator()(Args... args)
+//	__forceinline _Ret operator()(_Args... args)
 //	{
-//		return (Ret)(*fn_)(std::forward<Args>(args)...);
+//		return (_Ret)(*fn_)(std::forward<_Args>(args)...);
 //	}
 //
 //	__forceinline operator bool() const
@@ -941,12 +1020,12 @@ namespace x
 //		return !(bool)fn_;
 //	}
 //
-//	virtual void call(Args... args) final override
+//	virtual void call(_Args... args) final override
 //	{
 //		if (fn_)
-//			return (Ret)(*fn_)(std::forward<Args>(args)...);
+//			return (_Ret)(*fn_)(std::forward<_Args>(args)...);
 //		else
-//			throw x::error<Fn<Ret(*)(Args...)>>{empty_fn, "Function is empty."};
+//			throw x::error<Fn<_Ret(*)(_Args...)>>{empty_fn, "Function is empty."};
 //	}
 //
 //	void clear()
@@ -964,13 +1043,13 @@ namespace x
 //template<typename...>
 //class FnCall;
 //
-//template<typename Ret, typename... Args>
-//class FnCall<Ret(Args...)>: public Callable<>
+//template<typename _Ret, typename... _Args>
+//class FnCall<_Ret(_Args...)>: public Callable<>
 //{
 //public:
-//	static constexpr unsigned size = sizeof...(Args);
+//	static constexpr unsigned size = sizeof...(_Args);
 //private:
-//	using FnPtr_ = Ret(*)(Args...);
+//	using FnPtr_ = _Ret(*)(_Args...);
 //	class ArgEraser_ {};
 //
 //	template<typename T>
@@ -988,21 +1067,21 @@ namespace x
 //	ArgEraser_* args_[size];
 //
 //	template<int... i>
-//	__forceinline Ret expandArgs_(seq<i...>&) const
+//	__forceinline _Ret expandArgs_(seq<i...>&) const
 //	{
-//		return fn_(static_cast<ArgConcrete_<x::select_t<i+1, Args...>>*>(args_[i])->value...);
+//		return fn_(static_cast<ArgConcrete_<x::select_t<i+1, _Args...>>*>(args_[i])->value...);
 //	}
 //
 //public:
-//	FnCall(FnPtr_ fn, Args const&... args):
-//		args_{(new ArgConcrete_<Args>{args})...},
+//	FnCall(FnPtr_ fn, _Args const&... args):
+//		args_{(new ArgConcrete_<_Args>{args})...},
 //		fn_{fn}
 //	{
 //	}
 //
 //	virtual Callable<>* copy() const override
 //	{
-//		return new FnCall<Ret(Args...)>{*this};
+//		return new FnCall<_Ret(_Args...)>{*this};
 //	}
 //
 //	virtual void call() override
@@ -1010,7 +1089,7 @@ namespace x
 //		if (fn_)
 //			expandArgs_(gen_seq<size>{});
 //		else
-//			throw x::error<FnCall<Ret(Args...)>>{empty_fn, "Function is empty."};
+//			throw x::error<FnCall<_Ret(_Args...)>>{empty_fn, "Function is empty."};
 //
 //	}
 //
@@ -1029,20 +1108,20 @@ namespace x
 //		for (int i = 0; i<size; ++i) delete args_[i];
 //	}
 //
-//	__forceinline Ret operator()() const
+//	__forceinline _Ret operator()() const
 //	{
 //		return expandArgs_(gen_seq<size>{});
 //	}
 //
 //};
 //
-//template<class C, typename Ret, typename... Args>
-//class FnCall<C, Ret(Args...)>: public Callable<>
+//template<class C, typename _Ret, typename... _Args>
+//class FnCall<C, _Ret(_Args...)>: public Callable<>
 //{
 //public:
-//	static constexpr unsigned size = sizeof...(Args);
+//	static constexpr unsigned size = sizeof...(_Args);
 //private:
-//	using FnPtr_ = Ret(C::*)(Args...);
+//	using FnPtr_ = _Ret(C::*)(_Args...);
 //	class ArgEraser_ {};
 //
 //	template<typename T>
@@ -1061,21 +1140,21 @@ namespace x
 //	ArgEraser_* args_[size];
 //
 //	template<int... i>
-//	__forceinline Ret expandArgs_(seq<i...>&) const
+//	__forceinline _Ret expandArgs_(seq<i...>&) const
 //	{
-//		return (obj_->*fn_)(static_cast<ArgConcrete_<x::select_t<i+1, Args...>>*>(args_[i])->value...);
+//		return (obj_->*fn_)(static_cast<ArgConcrete_<x::select_t<i+1, _Args...>>*>(args_[i])->value...);
 //	}
 //
 //public:
-//	FnCall(C* obj, FnPtr_ fn, Args const&... args):
-//		args_{(new ArgConcrete_<Args>{args})...},
+//	FnCall(C* obj, FnPtr_ fn, _Args const&... args):
+//		args_{(new ArgConcrete_<_Args>{args})...},
 //		obj_{obj}, fn_{fn}
 //	{
 //	}
 //
 //	virtual Callable<>* copy() const override
 //	{
-//		return new FnCall<C,Ret(Args...)>{*this};
+//		return new FnCall<C,_Ret(_Args...)>{*this};
 //	}
 //
 //	virtual void call() override
@@ -1083,7 +1162,7 @@ namespace x
 //		if (fn_)
 //			expandArgs_(gen_seq<size>{});
 //		else
-//			throw x::error<FnCall<C,Ret(Args...)>>{empty_fn, "Function is empty."};
+//			throw x::error<FnCall<C,_Ret(_Args...)>>{empty_fn, "Function is empty."};
 //
 //	}
 //
@@ -1102,18 +1181,18 @@ namespace x
 //		for (int i = 0; i<size; ++i) delete args_[i];
 //	}
 //
-//	__forceinline Ret operator()() const
+//	__forceinline _Ret operator()() const
 //	{
 //		return expandArgs_(gen_seq<size>{});
 //	}
 //
 //};
 //
-//template<typename Ret, typename... Args>
-//class FnCall<Fn<Ret(Args...)>>: public Callable<>
+//template<typename _Ret, typename... _Args>
+//class FnCall<Fn<_Ret(_Args...)>>: public Callable<>
 //{
 //public:
-//	static constexpr unsigned size = sizeof...(Args);
+//	static constexpr unsigned size = sizeof...(_Args);
 //private:
 //	class ArgEraser_ {};
 //
@@ -1128,25 +1207,25 @@ namespace x
 //		}
 //	};
 //
-//	Fn<Ret(Args...)> fn_;
+//	Fn<_Ret(_Args...)> fn_;
 //	ArgEraser_* args_[size];
 //
 //	template<int... i>
-//	__forceinline Ret expandArgs_(seq<i...>&) const
+//	__forceinline _Ret expandArgs_(seq<i...>&) const
 //	{
-//		return fn_(static_cast<ArgConcrete_<x::select_t<i+1, Args...>>*>(args_[i])->value...);
+//		return fn_(static_cast<ArgConcrete_<x::select_t<i+1, _Args...>>*>(args_[i])->value...);
 //	}
 //
 //public:
-//	FnCall(Fn<Ret(Args...)> const& fn, Args const&... args):
-//		args_{(new ArgConcrete_<Args>{args})...},
+//	FnCall(Fn<_Ret(_Args...)> const& fn, _Args const&... args):
+//		args_{(new ArgConcrete_<_Args>{args})...},
 //		fn_{fn}
 //	{
 //	}
 //
 //	virtual Callable<>* copy() const override
 //	{
-//		return new FnCall<Fn<Ret(Args...)>>{*this};
+//		return new FnCall<Fn<_Ret(_Args...)>>{*this};
 //	}
 //
 //	virtual void call() override
@@ -1154,7 +1233,7 @@ namespace x
 //		if (fn_)
 //			expandArgs_(gen_seq<size>{});
 //		else
-//			throw x::error<FnCall<Fn<Ret(Args...)>>>{empty_fn, "Function is empty."};
+//			throw x::error<FnCall<Fn<_Ret(_Args...)>>>{empty_fn, "Function is empty."};
 //
 //	}
 //
@@ -1173,7 +1252,7 @@ namespace x
 //		for (int i = 0; i<size; ++i) delete args_[i];
 //	}
 //
-//	__forceinline Ret operator()() const
+//	__forceinline _Ret operator()() const
 //	{
 //		return expandArgs_(gen_seq<size>{});
 //	}

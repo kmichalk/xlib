@@ -190,17 +190,17 @@
 //
 
 
-template<typename F>
+template<typename _Func>
 class fn_helper
 {
-	F fn;
+	_Func fn;
 	unsigned n_calls;
 	//unsigned n_failed;
 	//bool called;
 
 public:
 
-	fn_helper(F fn):
+	fn_helper(_Func fn):
 		fn{fn}, n_calls{0}
 	{}
 	/*template<bool test, R(T::* const fn_ptr)(A...)>
@@ -271,10 +271,10 @@ public:
 	}*/
 };
 
-template<typename F>
-fn_helper<F> create(F&& fn)
+template<typename _Func>
+fn_helper<_Func> create(_Func&& fn)
 {
-	return fn_helper<F>(fn);
+	return fn_helper<_Func>(fn);
 }
 
 #undef enable_if

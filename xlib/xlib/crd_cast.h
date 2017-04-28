@@ -1,46 +1,46 @@
-#ifndef CRD_CAST
-#define CRD_CAST
+#ifndef _X_CRD_CAST_H_
+#define _X_CRD_CAST_H_
 
 #include "more_type_traits.h"
 
 #define enable_if std::enable_if_t
 
-template<typename>
+template<class>
 struct _CrdConverter;
 
-template<template<typename> class _To, typename _TT>
-struct _CrdConverter<_To<_TT>>
+template<template<class> class _To, class _ToParam>
+struct _CrdConverter<_To<_ToParam>>
 {
 	MEMBER_TEST(_has_z, z);
 
 	template<
-		template<typename> class _From,
-		typename _FT,
-		template<typename> class _ToC = _To,
-		typename _TTC = _TT>
+		template<class> class _From,
+		class _FromParam,
+		template<class> class _To = _To,
+		_capture(_ToParam)>
 		inline static enable_if<
-			!_has_z<_ToC<_TTC>>::value || 
-			!_has_z<_From<_FT>>::value,
-	_To<_TT>> _convert(_From<_FT> const& crdVal)
+			!_has_z<_To<_ToParam>>::value || 
+			!_has_z<_From<_FromParam>>::value,
+	_To<_ToParam>> _convert(_From<_FromParam> const& crdVal)
 	{
-		return _To<_TT>{(_TT)crdVal.x, (_TT)crdVal.y};
+		return _To<_ToParam>{(_ToParam)crdVal.x, (_ToParam)crdVal.y};
 	}
 
 	template<
-		template<typename> class _From,
-		typename _FT,
-		template<typename> class _ToC = _To,
-		typename _TTC = _TT>
+		template<class> class _From,
+		class _FromParam,
+		template<class> class _To = _To,
+		_capture(_ToParam)>
 		inline static enable_if<
-			_has_z<_ToC<_TTC>>::value && 
-			_has_z<_From<_FT>>::value,
-	_To<_TT>> _convert(_From<_FT> const& crdVal)
+			_has_z<_To<_ToParam>>::value && 
+			_has_z<_From<_FromParam>>::value,
+	_To<_ToParam>> _convert(_From<_FromParam> const& crdVal)
 	{
-		return _To<_TT>{(_TT)crdVal.x, (_TT)crdVal.y, (_TT)crdVal.z};
+		return _To<_ToParam>{(_ToParam)crdVal.x, (_ToParam)crdVal.y, (_ToParam)crdVal.z};
 	}
 };
 
-template<typename _To, typename _From>
+template<class _To, class _From>
 __forceinline _To crd_cast(_From const& _crdVal) 
 {
 	return _CrdConverter<_To>::_convert(_crdVal);
@@ -48,4 +48,4 @@ __forceinline _To crd_cast(_From const& _crdVal)
 
 #undef enable_if
 
-#endif
+#endif //_X_CRD_CAST_H_

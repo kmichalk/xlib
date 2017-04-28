@@ -6,6 +6,28 @@
 
 namespace x
 {
+	/// <summary>
+	/// Class representing range containing \a a and \a b values representing 
+	/// begin end end of the range as well as interval value.
+	/// </summary>
+	/// <typeparam name="_Type"> - type of values</typeparam>
+	/// <remarks> 
+	/// Purposes to use x::range can be iteration through set of values from a to b
+	/// incrementing or decrementing by specified interval. It can also be used for 
+	/// simplified checking whether some value lays between a and b.
+	/// It asserts begin to be always lower than or equal to end.
+	/// This class is iterator-friendly, so it can be used in shortened for loop syntax.
+	/// </remarks>
+	/// <example><code>bool in_range(x::vector<int> const& iv, x::range<int> const& r) {
+	///		foreach(i, iv) { 
+	///			if (!r.contains(*i)) return false;
+	///		}
+	///		return true;
+	/// }</code></example>
+	/// <example><code>x::vector<x::crd<double>> plotPoints;
+	/// for (auto d : x::range<double>{-1,1,0.01}) {
+	///		plotPoints.push_back({d, func(d)});
+	/// }</code></example>
 	template<typename _Type>
 	class range
 	{
@@ -14,157 +36,312 @@ namespace x
 		_Type interval_;
 
 	public:
+		/// <summary>
+		/// Range iterator automates iteration through all values from begin value
+		/// to end value inclusive with density specified by interval value.
+		/// It does not modify x::range to which it is assigned so there is
+		/// no need for x::range to have also const_iterator.
+		/// </summary>
 		struct iterator
 		{
+			/// <summary>
+			/// Reference to x::range to which the iterator is assigned immutably.
+			/// </summary>
 			range<_Type> const& object;
-			size_t pos;
 
-			
+			/// <summary>
+			/// Current value of the iterator.
+			/// </summary>
+			_Type value;
+
+
+			/// <summary>
+			/// Basic constructor. Assigns iterator to a specific x::range object. 
+			/// Initializes value to begin of \a object.
+			/// </summary>
+			/// <param name="object"> - object to be assigned to</param>
+			iterator(
+				range<_Type> const& object)
+				:
+				object{object},
+				value{object.a_}
+			{
+			}
+
+			/// <summary>
+			/// Basic constructor. Assigns iterator to a specific x::range object. 
+			/// Initializes value to specified.
+			/// If the value exceeds specified range limits it is cut to fit the range.
+			/// </summary>
+			/// <param name="object"> - object to be assigned to</param>
+			/// <param name="value"> - initial value</param>
 			iterator(
 				range<_Type> const& object,
-				size_t				pos	= 0)
-				: 
-				object	{object},
-				pos		{pos}
-			{
-			}
-
-			iterator(
-				iterator const& other)
+				_Type value)
 				:
-				object	{other.object}, 
-				pos		{other.pos}
+				object{object},
+				value{x::cutr(value, object.a_, object.b_)}
 			{
 			}
 
+
+			/// <summary>
+			/// Defaulted copy constructor. 
+			/// Assigns created iterator to the same object.
+			/// Initializes \a value to \a value of \a other.
+			/// </summary>
+			/// <param name="other"> - iterator to be copied</param>
 			iterator(
-				iterator&& other)
-				:
-				object	{other.object},
-				pos		{other.pos}
-			{
-			}
+				iterator const& other) = default;
 
 
+			/// <summary>
+			/// Defaulted move constructor.
+			/// Assigns created iterator to the same object.
+			/// Initializes \a value to moved \a value of \a other.
+			/// </summary>
+			/// <param name="other"></param>
+			iterator(
+				iterator&& other) = default;
+
+
+			/// <summary>
+			/// Adds \a object's \a interval to \a value. 
+			/// </summary>
+			/// <returns>reference to the caller</returns>
 			__forceinline iterator& operator++()
 			{
-				++pos;
+				value += object.interval_;
 				return *this;
 			}
 
+
+			/// <summary>
+			/// Subtracts \a object's \a interval to \a value. 
+			/// </summary>
+			/// <returns>reference to the caller</returns>
 			__forceinline iterator& operator--()
 			{
-				--pos;
+				value -= object.interval_;
 				return *this;
 			}
 
+
+			/// <summary>
+			/// Adds \a object's \a interval to \a value. 
+			/// </summary>
+			/// <returns>iterator with \a value from before modification</returns>
 			inline iterator operator++(int)
 			{
-				return iterator{object, pos++};
+				iterator copy{*this};
+				value += object.interval_;
+				return copy;
 			}
 
+
+			/// <summary>
+			/// Subtracts \a object's \a interval to \a value. 
+			/// </summary>
+			/// <returns>iterator with \a value from before modification</returns>
 			inline iterator operator--(int)
 			{
-				return iterator{object, pos--};
+				iterator copy{*this};
+				value -= object.interval_;
+				return copy;
 			}
 
-			template<_concept<std::is_floating_point<_Type>::value>>
+
+			/// <summary>
+			/// Adds \a addv to \a iterator's \a value.
+			/// </summary>
+			/// <returns>iterator with increased \a value</returns>
 			__forceinline iterator operator+(_Type addv)
 			{
-				return iterator(object, pos + addv/object.interval_);
+				return iterator(object, value + addv);
 			}
 
-			template<_concept<std::is_floating_point<_Type>::value>>
+
+			/// <summary>
+			/// Subtracts \a subv from \a iterator's \a value.
+			/// </summary>
+			/// <returns>iterator with decreased \a value</returns>
 			__forceinline iterator operator-(_Type subv)
 			{
-				return iterator(object, pos - subv/object.interval_);
+				return iterator(object, value - subv);
 			}
 
-			template<_concept<std::is_floating_point<_Type>::value>>
+
+			/// <summary>
+			/// Adds \a addv to \a iterator's \a value.
+			/// </summary>
+			/// <returns>reference to the caller with increased \a value</returns>
 			__forceinline iterator& operator+=(_Type addv)
 			{
-				pos += addv/object.interval_; 
+				value += addv;
 				return *this;
-			}
-			
-			template<_concept<std::is_floating_point<_Type>::value>>
-			__forceinline iterator& operator-=(_Type subv)
-			{
-				pos -= subv/object.interval_; 
-				return *this;
-			}
-			
-			__forceinline iterator operator+(size_t n) const
-			{
-				return iterator(object, pos + n);
-			}
-			
-			__forceinline iterator operator-(size_t n) const
-			{
-				return iterator(object, pos - n);
-			}
-			
-			__forceinline iterator& operator+=(size_t n)
-			{
-				pos += n;
-				return *this;
-			}
-			
-			__forceinline iterator& operator-=(size_t n)
-			{
-				pos -= n;
-				return *this;
-			}
-			
-			__forceinline _Type operator*() const
-			{
-				return object.a_ + object.interval_*pos;
-			}
-			
-			__forceinline bool operator==(iterator const& other) const
-			{
-				return pos == other.pos;
-			}
-			
-			__forceinline bool operator!=(iterator const& other) const
-			{
-				return pos != other.pos;
-			}
-			
-			__forceinline bool operator<(iterator const& other) const
-			{
-				return pos < other.pos;
-			}
-			
-			__forceinline bool operator>(iterator const& other) const
-			{
-				return pos > other.pos;
-			}
-			
-			__forceinline bool operator<=(iterator const& other) const
-			{
-				return pos <= other.pos;
-			}
-			
-			__forceinline bool operator>=(iterator const& other) const
-			{
-				return pos >= other.pos;
-			}
-			
-			__forceinline iterator& operator=(iterator const& other)
-			{
-				pos = other.pos; 
-				return *this;
-			}
-			
-			__forceinline operator bool() const
-			{
-				return pos >= object.a_ && pos <= object.b_;
 			}
 
+
+			/// <summary>
+			/// Subtracts \a subv from \a iterator's \a value.
+			/// </summary>
+			/// <returns>reference to the caller with decreased \a value</returns>
+			__forceinline iterator& operator-=(_Type subv)
+			{
+				value -= subv;
+				return *this;
+			}
+
+
+			/// <summary>
+			/// Adds \a object's \a interval multiplied by \a n to \a iterator's \a value.
+			/// </summary>
+			/// <returns>iterator with increased \a value</returns>
+			__forceinline iterator operator+(size_t n) const
+			{
+				return iterator(object, value + n*object.interval_);
+			}
+
+
+			/// <summary>
+			/// Subtracts \a object's \a interval multiplied by \a n from \a iterator's \a value.
+			/// </summary>
+			/// <returns>iterator with decreased \a value</returns>
+			__forceinline iterator operator-(size_t n) const
+			{
+				return iterator(object, value - n*object.interval_);
+			}
+
+
+			/// <summary>
+			/// Adds \a object's \a interval multiplied by \a n to \a iterator's \a value.
+			/// </summary>
+			/// <returns>reference to the caller with increased \a value</returns>
+			__forceinline iterator& operator+=(size_t n)
+			{
+				value += n*object.interval_;
+				return *this;
+			}
+
+
+			/// <summary>
+			/// Subtracts \a object's \a interval multiplied by \a n from \a iterator's \a value.
+			/// </summary>
+			/// <returns>reference to the caller with decreased \a value</returns>
+			__forceinline iterator& operator-=(size_t n)
+			{
+				value -= n*object.interval_;
+				return *this;
+			}
+
+
+			/// <summary>
+			/// Overloaded dereference operator to stand by unified syntax for getting value 
+			/// pointed by an iterator. It does not dereference any pointer so it is safe.
+			/// </summary>
+			/// <returns>current value of the iterator</returns>
+			__forceinline _Type operator*() const
+			{
+				return value;
+			}
+
+
+			/// <summary>
+			/// Compares two iterators in respect of \a value.
+			/// It does not compare assigned ranges.
+			/// </summary>
+			/// <returns>true if values are equal, otherwise false</returns>
+			__forceinline bool operator==(iterator const& other) const
+			{
+				return value == other.value;
+			}
+
+
+			/// <summary>
+			/// Compares two iterators in respect of \a value.
+			/// It does not compare assigned ranges.
+			/// </summary>
+			/// <returns>true if values are not equal, otherwise false</returns>
+			__forceinline bool operator!=(iterator const& other) const
+			{
+				return value != other.value;
+			}
+
+
+			/// <summary>
+			/// Compares two iterators in respect of \a value.
+			/// It does not compare assigned ranges.
+			/// </summary>
+			/// <returns>true if caller's \a value is lower than \a other's, otherwise false</returns>
+			__forceinline bool operator<(iterator const& other) const
+			{
+				return value < other.value;
+			}
+
+
+			/// <summary>
+			/// Compares two iterators in respect of \a value.
+			/// It does not compare assigned ranges.
+			/// </summary>
+			/// <returns>true if caller's \a value is greater than \a other's, otherwise false</returns>
+			__forceinline bool operator>(iterator const& other) const
+			{
+				return value > other.value;
+			}
+
+
+			/// <summary>
+			/// Compares two iterators in respect of \a value.
+			/// It does not compare assigned ranges.
+			/// </summary>
+			/// <returns>true if caller's \a value is lower than or equal to \a other's, otherwise false</returns>
+			__forceinline bool operator<=(iterator const& other) const
+			{
+				return value <= other.value;
+			}
+
+
+			/// <summary>
+			/// Compares two iterators in respect of \a value.
+			/// It does not compare assigned ranges.
+			/// </summary>
+			/// <returns>true if caller's \a value is greater than or equal to \a other's, otherwise false</returns>
+			__forceinline bool operator>=(iterator const& other) const
+			{
+				return value >= other.value;
+			}
+
+
+			/// <summary>
+			/// Assignes \a value of \a other iterator
+			/// It does not change the assigned \a object.
+			/// </summary>
+			/// <returns>reference to the caller</returns>
+			__forceinline iterator& operator=(iterator const& other)
+			{
+				value = other.value;
+				return *this;
+			}
+
+
+			/// <summary>
+			/// Checks whether \a assigned range includes \a value.
+			/// </summary>
+			/// <returns>true if \a assigned range includes \a value, otherwise false</returns>
+			__forceinline operator bool() const
+			{
+				return value >= object.a_ && value <= object.b_;
+			}
+
+
+			/// <summary>
+			/// Allows to use iterator as if it was regular value of specified \a _Type
+			/// </summary>
+			/// <
+			/// <returns></returns>
 			__forceinline operator _Type() const
 			{
-				return object.a_ + object.interval_*pos;;
+				return value;
 			}
 		};
 
@@ -174,7 +351,7 @@ namespace x
 		using pointer = _Type*;
 		using reference = _Type&;
 
-		range()
+		 constexpr range()
 			:
 			a_			{0},
 			b_			{1},
@@ -182,7 +359,7 @@ namespace x
 		{
 		}
 
-		range(
+		constexpr range(
 			_Type a, 
 			_Type b,
 			_Type interval = 1)
@@ -285,12 +462,12 @@ namespace x
 
 		inline iterator begin() const
 		{
-			return iterator{*this, 0};
+			return iterator{*this, a_};
 		}
 
 		inline iterator end() const
 		{
-			return iterator{*this, size_t((b_-a_)/interval_) + 1}; 
+			return iterator{*this, b_ + interval_}; 
 		}
 
 		~range()

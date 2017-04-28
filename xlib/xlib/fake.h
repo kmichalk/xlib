@@ -1,10 +1,11 @@
 #ifndef FAKE_H
 #define FAKE_H
 
+#include "more_type_traits.h"
+#include "byte.h"
+
 namespace x
 {
-	using byte = unsigned char;
-
 	template<typename _Type>
 	class FakeType
 	{
@@ -40,7 +41,7 @@ namespace x
 	/*template<typename _Type>
 	using FakeType = byte[sizeof(_Type)];*/
 
-	template<typename _Type>
+	/*template<typename _Type>
 	__forceinline _Type* fake() noexcept
 	{
 		return reinterpret_cast<_Type*>(new FakeType<_Type>);
@@ -50,7 +51,22 @@ namespace x
 	__forceinline _Type* fake(size_t size) noexcept
 	{
 		return reinterpret_cast<_Type*>(new FakeType<_Type>[size]);
-	}
+	}*/
+
+
+	///////////////////////////////////////////////////////////////////////////////
+
+	/// <summary>
+	/// Class recursively expanding to specified size.
+	/// </summary>
+	/// <typeparam name="_size"> - desired size of generated type</typeparam>
+	/// <typeparam name="_Fake"> - type, size of which _size parameter will be multiplied
+	/// by default: byte</typeparam>
+	template<size_t _size, class _Fake = byte>
+	class fake
+	{
+		std::conditional_t<_size == sizeof(_Fake), _Fake, fake<_size - sizeof(_Fake), _Fake>> data_;
+	};
 }
 
 #endif //FAKE_H

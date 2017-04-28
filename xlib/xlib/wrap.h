@@ -1,4 +1,4 @@
-#ifndef _WRAP_H
+#ifndef _WRAP_H_
 #define _WRAP_H_
 
 #include "more_type_traits.h"
@@ -8,24 +8,26 @@ namespace x::wrap
 	template<class _Type>
 	class ptr
 	{
-		_Type* value_;
+		using PtrType = std::remove_pointer_t<_Type>*;
+		PtrType value_;
 
 	public:
-		template<class _Arg, _concept<!x::same_template<_Arg, ptr<_Type>>::value>>
+		template<class _Arg, 
+			_concept<!x::same_template<_Arg, ptr<_Type>>::value>>
 		inline ptr(_Arg& ref) :
-			value_{static_cast<_Type*>(&ref)}
+			value_{static_cast<PtrType>(&ref)}
 		{
 		}
 
 		template<class _Arg>
-		inline ptr(_Arg* ptr) :
-			value_{static_cast<_Type*>(ptr)}
+		inline ptr(_Arg* ptr):
+			value_{static_cast<PtrType>(ptr)}
 		{
 		}
 
 		template<class _Other>
 		inline ptr(ptr<_Other> const& other):
-			value_{static_cast<_Type*>(other.value_)}
+			value_{static_cast<PtrType>(other.value_)}
 		{
 		}
 
@@ -46,7 +48,7 @@ namespace x::wrap
 			return *value_;
 		}
 
-		__forceinline _Type* operator->()
+		__forceinline PtrType operator->()
 		{
 			return value_;
 		}

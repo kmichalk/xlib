@@ -157,6 +157,13 @@ public:
 		operator/=(len());
 		return *this;
 	}
+
+	crd<_Type>& abs()
+	{
+		x = ::abs(x);
+		y = ::abs(y);
+	}
+
 	crd<_Type>& setLen(_Type l)
 	{
 		operator/=(len()/l);

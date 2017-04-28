@@ -5,7 +5,7 @@
 //#include <atomic>
 //#include "threaded.h"
 //#include "signals.h"
-//#include "loops.h"
+//
 //#include "typeenum.h"
 //#include "SFML\Graphics.hpp"
 //#include "error.h"
@@ -33,7 +33,7 @@
 //
 //class KeyEvent: public Event, enumed
 //{
-//	static const WKey DEF_KEY = WKey::Unknown;
+//	static const WKey DEFAULT_KEY = WKey::Unknown;
 //
 //	WKey key;
 //	bool pressed;
@@ -41,7 +41,7 @@
 //
 //public:
 //	KeyEvent() : typenum(),
-//		key{DEF_KEY}, pressed{false}, once{true}
+//		key{DEFAULT_KEY}, pressed{false}, once{true}
 //	{}
 //
 //	template<typename F>
@@ -51,7 +51,7 @@
 //		F slot_fn) : typenum(),
 //		key{key}, pressed{false}, once{once}
 //	{
-//		static_assert(is_free_fn_ptr<F>::value,
+//		static_assert(is_free_func_ptr<F>::value,
 //			"This KeyEvent constructor only accepts function pointers.");
 //		action.attach(slot_fn);
 //	}
@@ -64,7 +64,7 @@
 //		F slot_fn) : typenum(),
 //		key{key}, pressed{false}, once{once}
 //	{
-//		static_assert(is_member_fn_ptr<F>::value,
+//		static_assert(is_member_func_ptr<F>::value,
 //			"This KeyEvent constructor only accepts member function pointers.");
 //		action.attach(obj, slot_fn);
 //	}
@@ -223,17 +223,17 @@
 //
 //#endif //KEY_EVENT_H
 
-#ifndef KEY_EVENT_H
-#define KEY_EVENT_H
+#ifndef _X_KEY_EVENT_H_
+#define _X_KEY_EVENT_H_
 
 #include <thread>
 #include <atomic>
 #include "threaded.h"
 #include "signals.h"
-#include "loops.h"
+
 #include "typeenum.h"
-#include "SFML\Graphics.hpp"
 #include "fn.h"
+#include "wkey.h"
 
 
 class Event
@@ -249,14 +249,14 @@ protected:
 
 public:	
 
-	virtual bool trigger() const abstract;
+	virtual bool trigger() abstract;
 	virtual void process() abstract;
 	virtual void operator()()
 	{
 		action_->call();
 	}
 
-	template<typename EventType>
+	template<x::ExceptionHandling>
 	friend class EventHandler;
 
 	virtual ~Event()
@@ -282,7 +282,7 @@ public:
 	x::Callable<bool()>* trigger_;
 public:
 
-	virtual bool trigger() const override
+	virtual bool trigger() override
 	{
 		return trigger_->call();
 	}
@@ -293,7 +293,7 @@ public:
 		}
 	}
 
-	template<typename EventType>
+	template<x::ExceptionHandling>
 	friend class EventHandler;
 
 	virtual ~DynamicEvent()
@@ -302,62 +302,10 @@ public:
 	}
 };
 
-#include <Windows.h>
-
-enum class WKey
-{
-	Empty = 0,
-	LMB=VK_LBUTTON,
-	RMB=VK_RBUTTON,
-	MMB=VK_MBUTTON,
-	Cancel=VK_CANCEL,
-	BackSpace=VK_BACK,
-	Tab=VK_TAB,
-	Clear=VK_CLEAR,
-	Enter=VK_RETURN,
-	LShift=VK_LSHIFT,
-	RShift=VK_RSHIFT,
-	LCtrl=VK_LCONTROL,
-	RCtrl=VK_RCONTROL,
-	LAlt=VK_LMENU,
-	RAlt=VK_RMENU,
-	Pause=VK_PAUSE,
-	CapsLock=VK_CAPITAL,
-	Esc=VK_ESCAPE,
-	Space=VK_SPACE,
-	PageUp=VK_PRIOR,
-	PageDown=VK_NEXT,
-	End=VK_END,
-	Home=VK_HOME,
-	Left=VK_LEFT,
-	Right=VK_RIGHT,
-	Up=VK_UP,
-	Down=VK_DOWN,
-	Select=VK_SELECT,
-	Print=VK_PRINT,
-	Execute=VK_EXECUTE,
-	PrtScr=VK_SNAPSHOT,
-	Ins=VK_INSERT,
-	Del=VK_DELETE,
-	Help=VK_HELP,
-	k0=0x30,k1,k2,k3,k4,k5,k6,k7,k8,k9,
-	A=0x41, B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,
-	n0=VK_NUMPAD0,n1,n2,n3,n4,n5,n6,n7,n8,n9,
-	Win=VK_LWIN,
-	Mult=VK_MULTIPLY,
-	Add=VK_ADD,
-	Separator=VK_SEPARATOR,
-	Sub=VK_SUBTRACT,
-	Div=VK_DIVIDE,
-	F1 = VK_F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
-	NumLock=VK_NUMLOCK,
-	ScrollLock=VK_SCROLL	
-};
-
 class KeyEvent: public Event
 {
 protected:
-	static const WKey DEF_KEY = WKey::Empty;
+	static const WKey DEFAULT_KEY = WKey::Empty;
 	
 	bool pressed;
 	bool once;
@@ -390,7 +338,7 @@ public:
 		return key;
 	}*/
 
-	template<typename EventType>
+	template<x::ExceptionHandling>
 	friend class EventHandler;
 };
 
@@ -412,9 +360,9 @@ public:
 		//std::cout<<"e";
 	}
 
-	virtual bool trigger() const override
+	virtual bool trigger() override
 	{
-		return GetAsyncKeyState(int(key));
+		return isPressed(key);
 	}
 
 	virtual void process() override
@@ -448,9 +396,9 @@ public:
 	{
 	}
 
-	virtual bool trigger() const override
+	virtual bool trigger() override
 	{
-		return !GetAsyncKeyState(int(key));
+		return !isPressed(key);
 	}
 
 	virtual void process() override
@@ -484,10 +432,10 @@ public:
 	{
 	}
 
-	virtual bool trigger() const override
+	virtual bool trigger() override
 	{
 		for (auto key{keys.cbegin()}; key; ++key) {
-			if ( ! GetAsyncKeyState(int(*key)))
+			if (!isPressed(*key))
 				return false;
 		}
 		return true;
@@ -507,36 +455,77 @@ public:
 	}
 };
 
-template<class EventType = Event>
+
+template<x::ExceptionHandling _exceptHndl = x::ExceptionHandling::NONE>
 class EventHandler: public TimedProcess
 {
-	x::vector<EventType*> events_;
+private:
+	x::vector<Event*> events_;
 
-public:
-	static constexpr double DEF_PROCESS_PERIOD = 0.025;
 
-	EventHandler(double processPeriod = DEF_PROCESS_PERIOD):
+	template<x::ExceptionHandling _exceptHndl = _exceptHndl>
+	inline std::enable_if_t<_exceptHndl == x::ExceptionHandling::NONE,
+		void> task_()
+	{
+		for (auto& event : events_)
+			event->process();
+	}
+
+	template<x::ExceptionHandling _exceptHndl = _exceptHndl>
+	inline std::enable_if_t<_exceptHndl == x::ExceptionHandling::X_ERRORS, 
+		void> task_()
+	{
+		for (auto& event : events_) {
+			try {
+				event->process();
+			}
+			catch (x::error<>& e) {
+				std::cout << e;
+			}
+		}
+	}
+
+	template<x::ExceptionHandling _exceptHndl = _exceptHndl>
+	inline std::enable_if_t<_exceptHndl == x::ExceptionHandling::ALL,
+		void> task_()
+	{
+		for (auto& event : events_) {
+			try {
+				event->process();
+			}
+			catch (x::error<>& e) {
+				std::cout << e;
+			}
+			catch (...) {
+				std::cout << "Unknown exception.\n";
+			}
+		}
+	}
+
+public:	
+	static constexpr double DEFAULT_PROCESS_PERIOD = 0.025;
+
+	EventHandler(double processPeriod = DEFAULT_PROCESS_PERIOD):
 		TimedProcess{processPeriod}
 	{
 	}
 
 	virtual void task() override
 	{
-		for (auto& event : events_) {
-			event->process();
-		}
+		task_();
 	}
 
-	void add(EventType* event)
+	void add(Event* event)
 	{
 		events_.push_back(event);
 	}
 
 	~EventHandler()
 	{
-		events_.clear<x::vector_opt::PTR_DELETE>();
+		events_.delete_each();
+		events_.clear();
 		std::cout<<"~EvHan\n";
 	}
 };
 
-#endif //KEY_EVENT_H
+#endif //_X_KEY_EVENT_H_

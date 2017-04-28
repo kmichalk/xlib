@@ -88,7 +88,7 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
+      <Optimization>Custom</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>D:\VSProjects\SFML-2.3.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -101,6 +101,8 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <MinimalRebuild>true</MinimalRebuild>
       <AdditionalUsingDirectories>C:\Program Files %28x86%29\Windows Kits\8.1\References\CommonConfiguration\Neutral\Annotated;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -117,6 +119,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -160,59 +163,83 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="date.cpp" />
     <ClCompile Include="fractions.cpp" />
+    <ClCompile Include="MemoryHandler.cpp" />
+    <ClCompile Include="sleep.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="threaded.cpp" />
-    <ClCompile Include="xstring.cpp" />
+    <ClCompile Include="wkey.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="abstract.h" />
+    <ClInclude Include="allocator.h" />
     <ClInclude Include="atomic.h" />
     <ClInclude Include="autolim.h" />
     <ClInclude Include="autoref.h" />
     <ClInclude Include="auto_cast.h" />
+    <ClInclude Include="bigint.h" />
     <ClInclude Include="bitliteral.h" />
     <ClInclude Include="bitmanager.h" />
-    <ClInclude Include="bridge.h" />
+    <ClInclude Include="byte.h" />
+    <ClInclude Include="char_class.h" />
     <ClInclude Include="clarg.h" />
+    <ClInclude Include="assign.h" />
     <ClInclude Include="crd.h" />
     <ClInclude Include="crd_cast.h" />
     <ClInclude Include="ctarray.h" />
     <ClInclude Include="ctmath.h" />
+    <ClInclude Include="date.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="disp.h" />
     <ClInclude Include="dynamic_ptr.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="event.h" />
+    <ClInclude Include="expr.h" />
     <ClInclude Include="fake.h" />
     <ClInclude Include="finally.h" />
     <ClInclude Include="fixedstr.h" />
+    <ClInclude Include="flag.h" />
     <ClInclude Include="fn.h" />
     <ClInclude Include="fncall.h" />
+    <ClInclude Include="fnv2.h" />
     <ClInclude Include="fn_helper.h" />
     <ClInclude Include="fractions.h" />
+    <ClInclude Include="functor.h" />
     <ClInclude Include="gc.h" />
     <ClInclude Include="geom.h" />
+    <ClInclude Include="clipboard.h" />
     <ClInclude Include="id.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="listed.h" />
+    <ClInclude Include="log.h" />
     <ClInclude Include="logic.h" />
     <ClInclude Include="mathfn.h" />
+    <ClInclude Include="matrix.h" />
     <ClInclude Include="member.h" />
+    <ClInclude Include="MemoryHandler.h" />
     <ClInclude Include="mouse.h" />
     <ClInclude Include="keyevent.h" />
+    <ClInclude Include="multiset.h" />
     <ClInclude Include="num.h" />
     <ClInclude Include="loops.h" />
     <ClInclude Include="observer.h" />
+    <ClInclude Include="pow10_table.h" />
+    <ClInclude Include="ptr_vector.h" />
+    <ClInclude Include="queue.h" />
     <ClInclude Include="range.h" />
+    <ClInclude Include="readonly.h" />
     <ClInclude Include="realcall.h" />
+    <ClInclude Include="regex.h" />
     <ClInclude Include="register.h" />
     <ClInclude Include="result.h" />
     <ClInclude Include="simple.h" />
+    <ClInclude Include="sleep.h" />
     <ClInclude Include="strmap.h" />
-    <ClInclude Include="Source.h" />
     <ClInclude Include="static_if.h" />
+    <ClInclude Include="synchronized.h" />
     <ClInclude Include="threaded.h" />
+    <ClInclude Include="thread_safe.h" />
     <ClInclude Include="tree.h" />
     <ClInclude Include="two.h" />
     <ClInclude Include="typearr.h" />
@@ -228,6 +255,7 @@
     <ClInclude Include="typeenum.h" />
     <ClInclude Include="va_handler.h" />
     <ClInclude Include="warning.h" />
+    <ClInclude Include="wkey.h" />
     <ClInclude Include="wrap.h" />
     <ClInclude Include="xrnd.h" />
     <ClInclude Include="xstring.h" />

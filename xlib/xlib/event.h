@@ -1,5 +1,5 @@
-#ifndef _X_EVENT_
-#define _X_EVENT_H_
+#ifndef _EVENT_
+#define _EVENT_H_
 
 #include "va_handler.h"
 #include "more_type_traits.h"
@@ -115,4 +115,4 @@ namespace x
 	template<class... _Args>
 	thread_local x::va::pack<_Args...> event<_Args...>::FuncEraser::argPack = {0,0.0f};
 }
-#endif //_X_EVENT_H_
+#endif //_EVENT_H_

@@ -5,6 +5,9 @@
 #include <thread>
 #include "xvector.h"
 #include "timer.h"
+#include "flag.h"
+#include "error.h"
+
 
 #define enable_if std::enable_if_t
 
@@ -48,14 +51,27 @@ public:
 
 class TimedProcess: public ThreadedProcess
 {
+	static const x::error<TimedProcess> ERROR_INVALID_PERIOD_;
+	static constexpr unsigned long DEFAULT_MIN_SLEEP_TIME_ = 10;
+
 	double processPeriod_;
 	unsigned long minSleepTime_;
+	double frequency_;
 	x::timer<std::chrono::milliseconds> processTimer_;
 public:
-	static constexpr unsigned long DEF_MIN_SLEEP_TIME = 10;
+	enum ErrorNum
+	{
+		INVALID_PERIOD
+	};
 
-	TimedProcess(double processPeriod, unsigned long minSleepTime = DEF_MIN_SLEEP_TIME);
+
+	x::flag continuous;
+
+	TimedProcess();
+	TimedProcess(double processPeriod, unsigned long minSleepTime = DEFAULT_MIN_SLEEP_TIME_);
 	virtual void process() override;
+	void setPeriod(double period);
+	
 	virtual ~TimedProcess();
 };
 

@@ -5,6 +5,7 @@
 #include "ctmath.h"
 #include "_void.h"
 #include "two.h"
+#include "wkey.h"
 #include <cmath>
 
 #define PI 3.141592653589793
@@ -56,7 +57,7 @@ namespace x
 	inline constexpr enable_if<std::is_floating_point<_Type>::value,
 		_Type> mant(_Type val) noexcept
 	{
-		return val-int(val);
+		return val - int(val);
 	}
 
 	template<typename _Type, typename = enable_if<true>>
@@ -74,14 +75,14 @@ namespace x
 
 	namespace va
 	{
-		
+
 
 
 		template<class... _Types>
 		using _operation_result = std::conditional_t<x::every_is<int, _Types...>::value, int, double>;
 
 		template<typename _Ret = double, typename... _Args>
-		__forceinline _operation_result<_Args...> sum(_Args... args)
+		inline _operation_result<_Args...> sum(_Args... args)
 		{
 			_operation_result<_Args...> result = 0;
 			expand((result += args)...);
@@ -112,13 +113,13 @@ namespace x
 			return result;
 		}*/
 	}
-	
+
 	/*Function checking if floating point number is near to 0 with specified error.*/
 	template<unsigned rangePow = 6, typename _Type>
 	inline constexpr enable_if<std::is_floating_point<_Type>::value,
 		_Type> is_zero(_Type val)
 	{
-		return val > -x::ct::pow(0.1,rangePow) && val < x::ct::pow(0.1, rangePow);
+		return val > -x::ct::pow(0.1, rangePow) && val < x::ct::pow(0.1, rangePow);
 	}
 
 	/*Function checking if floating point number is near to 0 with specified error.*/
@@ -126,7 +127,7 @@ namespace x
 	inline constexpr enable_if<std::is_integral<_Type>::value,
 		double> is_zero(_Type val)
 	{
-		return val==0;
+		return val == 0;
 	}
 
 	/*Function checking if floating point number is NOT near to 0 with specified error.*/
@@ -148,16 +149,16 @@ namespace x
 	template<typename _Type>
 	two<_Type> solve_eq(_Type a, _Type b, _Type c)
 	{
-		auto delta = sqrt(b*b-4*a*c);
-		return{(-b-delta)/(2*a),(-b+delta)/(2*a)};
+		auto delta = sqrt(b*b - 4 * a*c);
+		return{(-b - delta) / (2 * a),(-b + delta) / (2 * a)};
 	}
 
 	/*Normalize angle value in radians to fit range [0,360).*/
 	template<typename _Type>
 	_Type norm_rf(_Type val)
 	{
-		val = fmod(val, 2*PI);
-		if (val < 0) val += 2*PI;
+		val = fmod(val, 2 * PI);
+		if (val < 0) val += 2 * PI;
 		return val;
 	}
 
@@ -165,8 +166,8 @@ namespace x
 	template<typename _Type>
 	_Type norm_rh(_Type val)
 	{
-		val = fmod(val + PI, 2*PI);
-		if (val < 0) val += 2*PI;
+		val = fmod(val + PI, 2 * PI);
+		if (val < 0) val += 2 * PI;
 		return val - PI;
 	}
 
@@ -190,7 +191,7 @@ namespace x
 	/*enum SolveMode{ NORMAL, ENABLE_1, THROW};
 
 	template<typename _Type, SolveMode mode = NORMAL>
-	enable_if<mode==NORMAL, 
+	enable_if<mode==NORMAL,
 		two<_Type>> solve_eq(_Type a, _Type b, _Type c)
 	{
 		auto delta = sqrt(b*b-4*a*c);
@@ -232,19 +233,19 @@ namespace x
 	template<typename _Type>
 	__forceinline constexpr bool is_nan(_Type value) noexcept
 	{
-		return value!=value;
+		return value != value;
 	}
 
 	template<typename _Type>
 	__forceinline constexpr auto to_deg(_Type value) noexcept
 	{
-		return value/PI*180.0;
+		return value / PI*180.0;
 	}
 
 	template<typename _Type>
 	__forceinline constexpr auto to_rad(_Type value) noexcept
 	{
-		return value*PI/180.0;
+		return value*PI / 180.0;
 	}
 
 	__forceinline constexpr bool even(int value) noexcept
@@ -256,6 +257,16 @@ namespace x
 	{
 		return bool(value % 2);
 	}
+
+	template<class _Type>
+	__forceinline _Type round(_Type value, _Type to = _Type(1))
+	{
+		if (abs(to) < abs(value))
+			return value - fmod(value, to);
+		else
+			return to;
+	}
+
 }
 
 #undef enable_if

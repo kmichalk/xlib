@@ -132,7 +132,7 @@ namespace x::va
 	template<class _Type, size_t _size, size_t... _i, class... _Args>
 	__forceinline void arrinit(_Type(&arr)[_size], x::seq<_i...>&, _Args... args)
 	{
-		static_assert(_size == sizeof...(_Args), "Array size and number of initializing arguments don't match.");
+		static_assert(_size == sizeof...(_Args), "Array size and number of initializing arguments must match.");
 		
 		x::va::expand((arr[_i] = args)...);
 	}

@@ -24,7 +24,7 @@ namespace x::ct
 	};
 }
 
-#define force_constexpr(_value) _ForceConstexpr<decltype(_value)>::_Test<_value>::value
+#define assert_constexpr(...) x::ct::_ForceConstexpr<decltype((__VA_ARGS__))>::_Test<(__VA_ARGS__)>::value
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -100,8 +100,8 @@ _IF_LASTTEST_NOT_EXISTS(1){_STATIC_ERROR("There is no static_if statement to be 
 #define _STATIC_IF_1(_test) /*_SET_LASTTEST(_test);*/ _STATIC_IF(_test)
 //#define _static_if_1(_test) __if_exists(x::_StaticIf<_test>)
 #define _STATIC_IF_3(_test, _ifTrue, _ifFalse) _STATIC_CHOOSE(_test, _ifTrue, _ifFalse)
-#define static_if(...) CAT(_STATIC_IF_, NARGS(__VA_ARGS__))(__VA_ARGS__)
-
+//#define static_if(...) CAT(_STATIC_IF_, NARGS(__VA_ARGS__))(__VA_ARGS__)
+#define static_if(_test) __if_exists(x::_StaticIf<bool(_test)>)
 #define static_else /*_CREATE_USED_TAG(_GET_LASTTEST_NAME##_used__);*/ _STATIC_IF(!_GET_LASTTEST_NAME)
 
 

@@ -58,9 +58,9 @@ struct Value: public Eraser
 //		call_(gen_seq<nargs>());
 //	}
 //	
-//	template<typename F>
-//	FnCall(F&& fn, A... args):
-//		fn_{std::forward<F>(fn)}
+//	template<typename _Func>
+//	FnCall(_Func&& fn, A... args):
+//		fn_{std::forward<_Func>(fn)}
 //	{
 //		assign_(gen_seq<nargs>(), args...);
 //	}

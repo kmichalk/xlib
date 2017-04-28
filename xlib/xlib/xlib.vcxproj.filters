@@ -24,7 +24,16 @@
     <ClCompile Include="fractions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="xstring.cpp">
+    <ClCompile Include="date.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wkey.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sleep.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -152,9 +161,6 @@
     <ClInclude Include="static_if.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bridge.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="observer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -194,9 +200,6 @@
     <ClInclude Include="member.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="typearr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -228,6 +231,78 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="result.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="regex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bigint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="assign.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="allocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="clipboard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wkey.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="thread_safe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="readonly.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="multiset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="functor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="expr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="date.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="synchronized.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fnv2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ptr_vector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="byte.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sleep.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pow10_table.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="char_class.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

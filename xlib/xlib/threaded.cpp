@@ -1,6 +1,6 @@
 #include "threaded.h"
-#include <Windows.h>
 #include "simple.h"
+#include "sleep.h"
 
 Threaded::Threaded() :
 	running_{false}//, thread_{&Threaded::process,this}
@@ -9,6 +9,7 @@ Threaded::Threaded() :
 
 void Threaded::process()
 {
+	//this->prepare();
 	this->process();
 }
 
@@ -112,23 +113,47 @@ MainThread::~MainThread()
 
 void TimedProcess::process()
 {
+	prepare();
 	running_ = true;
 	unsigned long sleepTime;
 	processTimer_.tic();
 	while (running_) {
 		this->task();
-		sleepTime = x::cutl((processPeriod_-processTimer_.measure())*1000);
-		//if (sleepTime > minSleepTime_) Sleep(sleepTime);
+		if (!continuous) {
+			sleepTime = x::cutl((processPeriod_ - processTimer_.measure()) * 1000);
+			if (sleepTime > minSleepTime_) sleep(sleepTime);
+		}
 	}
+}
+
+void TimedProcess::setPeriod(double period)
+{
+	if (period <= 0) throw ERROR_INVALID_PERIOD_;
+	processPeriod_ = period;
+	continuous.off();
 }
 
 TimedProcess::~TimedProcess()
 {
 }
 
+TimedProcess::TimedProcess()
+	:
+	continuous{true},
+	processTimer_{},
+	processPeriod_{0.0},
+	minSleepTime_{DEFAULT_MIN_SLEEP_TIME_}
+{
+}
+
 TimedProcess::TimedProcess(double processPeriod, unsigned long minSleepTime):
+	continuous{false},
 	processTimer_{},
 	processPeriod_{processPeriod},
 	minSleepTime_{minSleepTime}
 {
 }
+
+const x::error<TimedProcess> TimedProcess::ERROR_INVALID_PERIOD_ = {
+	INVALID_PERIOD, 
+	"TimedProcess: tried to set invalid period value."};

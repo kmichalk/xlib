@@ -1,6 +1,6 @@
 //#pragma once
-#ifndef XRND_H
-#define XRND_H
+#ifndef _X_RND_H_
+#define _X_RND_H_
 #include <random>
 #include <cmath>
 #include "timer.h"
@@ -129,7 +129,7 @@ namespace x
 		timer<std::chrono::seconds>::epoch();
 
 	template<typename T, typename Distribution, typename Engine>
-	Engine _CurrentEngine::engine_ = Engine();
+	Engine _CurrentEngine::engine_ = []() {Engine engine{}; engine.seed(timer<std::chrono::microseconds>::epoch()); return engine; }();
 
 	template<typename T, typename Distribution, typename Engine>
 	Distribution _CurrentEngine::dist_ = Distribution();
@@ -148,17 +148,23 @@ namespace x
 	template<size_t _size>
 	char* random_str()
 	{
-		char* str = new char[_size + 1];
+		
+		char* str = new char[_size + 1]{};
+	
 		str[_size] = '\0';
+		
 		_expand_randomize(str, x::gen_seq<_size>{});
+	
 		return str;
 	}
 
 	template<class=void> char* random_str(size_t size)
 	{
-		char* str = new char[size + 1];
+		char* str = new char[size + 1]{};
 		str[size] = '\0';
-		for (char* c = str; (*c) = x::random<char>('a', 'z'); ++c);
+		for (size_t ch = 0; ch < size; ++ch) {
+			str[ch] = x::random<char>('a', 'z');
+		}
 		return str;
 	}
 
@@ -168,4 +174,4 @@ namespace x
 #undef forceinline
 //#undef decay
 
-#endif //XRND_H
+#endif //_X_RND_H_

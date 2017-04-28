@@ -51,7 +51,7 @@
 ////		F slot_fn) : typenum(),
 ////		key{key}, pressed{false}, once{once}
 ////	{
-////		static_assert(is_free_fn_ptr<F>::value,
+////		static_assert(is_free_func_ptr<F>::value,
 ////			"This KeyEvent constructor only accepts function pointers.");
 ////		action.attach(slot_fn);
 ////	}
@@ -64,7 +64,7 @@
 ////		F slot_fn) : typenum(),
 ////		key{key}, pressed{false}, once{once}
 ////	{
-////		static_assert(is_member_fn_ptr<F>::value,
+////		static_assert(is_member_func_ptr<F>::value,
 ////			"This KeyEvent constructor only accepts member function pointers.");
 ////		action.attach(obj, slot_fn);
 ////	}
@@ -282,7 +282,7 @@
 //		F slot_fn) : typenum(),
 //		key{key}, pressed{false}, once{once}
 //	{
-//		static_assert(is_free_fn_ptr<F>::value,
+//		static_assert(is_free_func_ptr<F>::value,
 //			"This KeyEvent constructor only accepts function pointers.");
 //		action.attach(slot_fn);
 //	}
@@ -295,7 +295,7 @@
 //		F slot_fn) : typenum(),
 //		key{key}, pressed{false}, once{once}
 //	{
-//		static_assert(is_member_fn_ptr<F>::value,
+//		static_assert(is_member_func_ptr<F>::value,
 //			"This KeyEvent constructor only accepts member function pointers.");
 //		action.attach(obj, slot_fn);
 //	}

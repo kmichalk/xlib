@@ -5,7 +5,6 @@
 #include "warning.h"
 
 #define enable_if std::enable_if_t
-#define _suspend template<typename = _Type>
 
 //namespace x
 //{
@@ -20,7 +19,7 @@
 
 namespace x
 {
-	template<typename _Type>
+	/*template<typename _Type>
 	class ref
 	{
 		_Type* object_;
@@ -44,7 +43,7 @@ namespace x
 	};
 	
 	template<typename _Type>
-	using cref = ref<std::add_const_t<_Type>>;
+	using cref = ref<std::add_const_t<_Type>>;*/
 
 	template<typename _Type>
 	class dynamic_ptr final
@@ -84,7 +83,7 @@ namespace x
 			return dynamic_ptr<_Type>{ForcePtrCtorFlag{}, ptr};
 		}
 
-		template<_capture<_Type>, _concept<std::is_default_constructible<_Type>::value>>
+		template<_capture(_Type), _concept<std::is_default_constructible<_Type>::value>>
 		__forceinline dynamic_ptr():
 			ptr_{new _Type{}}
 		{

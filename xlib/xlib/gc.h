@@ -142,6 +142,7 @@ namespace x
 		unsigned*	refCount_;
 
 		inline explicit ptr(
+
 			_Type* data,
 			unsigned* refCount)
 			:

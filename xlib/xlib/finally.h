@@ -1,7 +1,8 @@
-#ifndef FINALLY_H
-#define FINALLY_H
+#ifndef _X_FINALLY_H_
+#define _X_FINALLY_H_
 
 #include "fn.h"
+#include "static_if.h"
 
 namespace x
 {
@@ -9,13 +10,17 @@ namespace x
 	{
 		Fn<void()> action_;
 	public:
-		Finally() = delete;
+		inline Finally()
+		{
+		}
+
 		Finally(Finally const&) = delete;
 		Finally(Finally&&) = delete;
 
-		inline Finally(Fn<void()>&& action):
-			action_{std::move(action)}
+		template<class _Func>
+		inline void operator=(_Func&& action)
 		{
+			action_ = std::forward<_Func>(action);
 		}
 
 		inline ~Finally()
@@ -24,6 +29,8 @@ namespace x
 		}
 	};
 }
-#define finally(_code) x::Finally{[&](){_code}}
 
-#endif //FINALLY_H
+#define finally x::Finally __finally__;\
+	__finally__ = [& __if_exists(this){, this}]()
+
+#endif //_X_FINALLY_H_
